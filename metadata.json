@@ -1,0 +1,6 @@
+{
+  "name": "Haven - Residence & Outage Portal",
+  "description": "Bilingual & trilingual residential building management and tenant outage communication portal for Algeria and North Africa, featuring standalone Resident and Manager apps.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

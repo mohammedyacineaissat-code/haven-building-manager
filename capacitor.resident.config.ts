@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.haven.manager',
-  appName: 'Haven Manager',
+  appId: 'com.haven.resident',
+  appName: 'Haven Résidents',
   webDir: 'dist'
 };
 

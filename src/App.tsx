@@ -10,16 +10,21 @@ export function App() {
   const { currentRole, setRole, initializeData } = useBuildingStore();
   const { t } = useLanguageStore();
   const { initTheme } = useThemeStore();
-  const [viewMode, setViewMode] = useState<AppViewMode>(currentRole === 'manager' ? 'manager' : 'resident');
-  const [isStandaloneMode, setIsStandaloneMode] = useState(false);
+  const targetApp = import.meta.env.VITE_APP_TARGET as 'resident' | 'manager' | undefined;
+
+  const [viewMode, setViewMode] = useState<AppViewMode>(
+    targetApp ? targetApp : (currentRole === 'manager' ? 'manager' : 'resident')
+  );
+  const [isStandaloneMode, setIsStandaloneMode] = useState(!!targetApp);
   const [isUrlStandalone, setIsUrlStandalone] = useState(false);
+  const isHardcodedTarget = !!targetApp;
 
   // Initialize store and check URL parameters on load
   useEffect(() => {
     initializeData();
     initTheme();
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !isHardcodedTarget) {
       const params = new URLSearchParams(window.location.search);
       const appParam = params.get('app');
       const standaloneParam = params.get('standalone');
@@ -67,7 +72,7 @@ export function App() {
             {t.app.exit_standalone}
           </button>
         </div>
-      ) : (
+      ) : isHardcodedTarget ? null : (
         <AppLauncher 
           viewMode={viewMode}
           onSelectViewMode={(mode) => {

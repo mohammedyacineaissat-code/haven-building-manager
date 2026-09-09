@@ -4,8 +4,12 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port=3005 --host=0.0.0.0",
+    "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "tsc -b && vite build",
+    "build:resident": "cross-env VITE_APP_TARGET=resident tsc -b && cross-env VITE_APP_TARGET=resident vite build",
+    "build:manager": "cross-env VITE_APP_TARGET=manager tsc -b && cross-env VITE_APP_TARGET=manager vite build",
+    "android:sync:resident": "npm run build:resident && node -e \"require('fs').copyFileSync('capacitor.resident.config.ts','capacitor.config.ts')\" && npx cap sync android",
+    "android:sync:manager": "npm run build:manager && node -e \"require('fs').copyFileSync('capacitor.manager.config.ts','capacitor.config.ts')\" && npx cap sync android",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -28,6 +32,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
+    "cross-env": "^10.1.0",
     "postcss": "^8.4.41",
     "tailwindcss": "^3.4.10",
     "typescript": "^5.5.3",
