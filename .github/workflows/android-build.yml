@@ -52,7 +52,7 @@ jobs:
 
       - name: Build Resident APK (Release)
         working-directory: ./android
-        run: ./gradlew assembleRelease -Pandroid.injected.signing.store.file=${{ env.RELEASE_STORE_FILE }} -Pandroid.injected.signing.store.password=${{ env.RELEASE_STORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ env.RELEASE_KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ env.RELEASE_KEY_PASSWORD }}
+        run: ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$RELEASE_STORE_FILE -Pandroid.injected.signing.store.password=$RELEASE_STORE_PASSWORD -Pandroid.injected.signing.key.alias=$RELEASE_KEY_ALIAS -Pandroid.injected.signing.key.password=$RELEASE_KEY_PASSWORD
 
       - name: Rename Resident APK
         run: mv android/app/build/outputs/apk/release/app-release.apk haven-resident-app.apk
@@ -67,7 +67,7 @@ jobs:
 
       - name: Build Manager APK (Release)
         working-directory: ./android
-        run: ./gradlew assembleRelease -Pandroid.injected.signing.store.file=${{ env.RELEASE_STORE_FILE }} -Pandroid.injected.signing.store.password=${{ env.RELEASE_STORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ env.RELEASE_KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ env.RELEASE_KEY_PASSWORD }}
+        run: ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$RELEASE_STORE_FILE -Pandroid.injected.signing.store.password=$RELEASE_STORE_PASSWORD -Pandroid.injected.signing.key.alias=$RELEASE_KEY_ALIAS -Pandroid.injected.signing.key.password=$RELEASE_KEY_PASSWORD
 
       - name: Rename Manager APK
         run: mv android/app/build/outputs/apk/release/app-release.apk haven-manager-app.apk
