@@ -17,14 +17,14 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: 'npm'
 
-      - name: Setup Java JDK 21
+      - name: Setup Java JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '21'
+          java-version: '17'
 
       - name: Install npm dependencies
         run: npm ci || npm install
@@ -33,16 +33,29 @@ jobs:
         working-directory: ./android
         run: chmod +x ./gradlew
 
+      # --- 0. PREPARE KEYSTORE FOR RELEASE ---
+      - name: Generate Release Keystore
+        run: |
+          keytool -genkey -v -keystore release.keystore -alias release -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=Haven, OU=IT, O=Haven, L=Algiers, ST=Algiers, C=DZ"
+          export RELEASE_STORE_FILE=$PWD/release.keystore
+          export RELEASE_STORE_PASSWORD=password
+          export RELEASE_KEY_ALIAS=release
+          export RELEASE_KEY_PASSWORD=password
+          echo "RELEASE_STORE_FILE=$PWD/release.keystore" >> $GITHUB_ENV
+          echo "RELEASE_STORE_PASSWORD=password" >> $GITHUB_ENV
+          echo "RELEASE_KEY_ALIAS=release" >> $GITHUB_ENV
+          echo "RELEASE_KEY_PASSWORD=password" >> $GITHUB_ENV
+
       # --- 1. RESIDENT APP BUILD ---
       - name: Sync Resident App to Android
         run: npm run android:sync:resident
 
-      - name: Build Resident APK (Debug)
+      - name: Build Resident APK (Release)
         working-directory: ./android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleRelease -Pandroid.injected.signing.store.file=${{ env.RELEASE_STORE_FILE }} -Pandroid.injected.signing.store.password=${{ env.RELEASE_STORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ env.RELEASE_KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ env.RELEASE_KEY_PASSWORD }}
 
       - name: Rename Resident APK
-        run: mv android/app/build/outputs/apk/debug/app-debug.apk haven-resident-app.apk
+        run: mv android/app/build/outputs/apk/release/app-release.apk haven-resident-app.apk
 
       # --- 2. MANAGER APP BUILD ---
       - name: Clean previous Android build
@@ -52,12 +65,12 @@ jobs:
       - name: Sync Manager App to Android
         run: npm run android:sync:manager
 
-      - name: Build Manager APK (Debug)
+      - name: Build Manager APK (Release)
         working-directory: ./android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleRelease -Pandroid.injected.signing.store.file=${{ env.RELEASE_STORE_FILE }} -Pandroid.injected.signing.store.password=${{ env.RELEASE_STORE_PASSWORD }} -Pandroid.injected.signing.key.alias=${{ env.RELEASE_KEY_ALIAS }} -Pandroid.injected.signing.key.password=${{ env.RELEASE_KEY_PASSWORD }}
 
       - name: Rename Manager APK
-        run: mv android/app/build/outputs/apk/debug/app-debug.apk haven-manager-app.apk
+        run: mv android/app/build/outputs/apk/release/app-release.apk haven-manager-app.apk
 
       # --- 3. UPLOAD ARTIFACTS ---
       - name: Upload APKs to GitHub

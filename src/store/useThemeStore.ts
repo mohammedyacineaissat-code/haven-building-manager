@@ -21,7 +21,7 @@ export const useThemeStore = create<ThemeState>()(
         const { theme } = get();
         const isDark = 
           theme === 'dark' || 
-          (theme === 'system' && typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
         
         if (isDark) {
           document.documentElement.classList.add('dark');

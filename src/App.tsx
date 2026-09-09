@@ -5,6 +5,9 @@ import { ManagerApp } from './apps/manager/ManagerApp';
 import { useBuildingStore } from './store/useBuildingStore';
 import { useLanguageStore } from './store/useLanguageStore';
 import { useThemeStore } from './store/useThemeStore';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { Capacitor } from '@capacitor/core';
 
 export function App() {
   const { currentRole, setRole, initializeData } = useBuildingStore();
@@ -23,6 +26,29 @@ export function App() {
   useEffect(() => {
     initializeData();
     initTheme();
+
+    // Native App Initialization (Capacitor)
+    if (Capacitor.isNativePlatform()) {
+      const initNativeApp = async () => {
+        try {
+          // Force a dark or light style for the status bar depending on the theme. 
+          // For now, setting to default light style or based on dark mode.
+          const isDark = document.documentElement.classList.contains('dark');
+          await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
+          
+          // Optionally set the status bar background color
+          if (Capacitor.getPlatform() === 'android') {
+            await StatusBar.setBackgroundColor({ color: isDark ? '#020617' : '#f8fafc' }); // slate-950 or slate-50
+          }
+          
+          // Hide splash screen after our app mounts
+          await SplashScreen.hide();
+        } catch (e) {
+          console.warn('Native plugin error:', e);
+        }
+      };
+      initNativeApp();
+    }
 
     if (typeof window !== 'undefined' && !isHardcodedTarget) {
       const params = new URLSearchParams(window.location.search);
@@ -72,7 +98,7 @@ export function App() {
             {t.app.exit_standalone}
           </button>
         </div>
-      ) : isHardcodedTarget ? null : (
+      ) : (
         <AppLauncher 
           viewMode={viewMode}
           onSelectViewMode={(mode) => {
