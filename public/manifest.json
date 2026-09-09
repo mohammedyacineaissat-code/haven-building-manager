@@ -4,13 +4,13 @@
   "description": "Portail résidentiel et gestion des coupures d'eau et électricité",
   "icons": [
     {
-      "src": "/assets/favicon.svg",
+      "src": "./assets/favicon.svg",
       "type": "image/svg+xml",
       "sizes": "192x192 512x512",
       "purpose": "any maskable"
     }
   ],
-  "start_url": "/?standalone=true",
+  "start_url": "./?standalone=true",
   "background_color": "#F8FAFC",
   "theme_color": "#10B981",
   "display": "standalone",
@@ -20,15 +20,15 @@
       "name": "Haven Résidents",
       "short_name": "Résidents",
       "description": "Espace Résident & Statut Eau",
-      "url": "/?app=resident&standalone=true",
-      "icons": [{ "src": "/assets/favicon.svg", "sizes": "192x192" }]
+      "url": "./?app=resident&standalone=true",
+      "icons": [{ "src": "./assets/favicon.svg", "sizes": "192x192" }]
     },
     {
       "name": "Haven Syndic",
       "short_name": "Syndic",
       "description": "Suite Gestionnaire & Alertes",
-      "url": "/?app=manager&standalone=true",
-      "icons": [{ "src": "/assets/favicon.svg", "sizes": "192x192" }]
+      "url": "./?app=manager&standalone=true",
+      "icons": [{ "src": "./assets/favicon.svg", "sizes": "192x192" }]
     }
   ]
 }

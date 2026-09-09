@@ -12,15 +12,29 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+    <link rel="manifest" href="./manifest.json" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   </head>
   <body class="bg-elevate-bg dark:bg-elevate-bg-dark text-slate-900 dark:text-slate-100 antialiased selection:bg-emerald-500 selection:text-white min-h-screen transition-colors duration-300">
+    <!-- Startup loading fallback: shown while React initializes, or if JS crashes -->
+    <div id="startup-fallback" style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;font-family:Inter,system-ui,-apple-system,sans-serif;background:#F8FAFC;color:#0F172A;">
+      <div style="width:48px;height:48px;border:3px solid #E2E8F0;border-top-color:#10B981;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px;"></div>
+      <p style="font-size:14px;font-weight:500;color:#64748B;">Chargement de Haven…</p>
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    </div>
+    <noscript>
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;padding:24px;text-align:center;">
+        <div>
+          <p style="font-size:48px;">🚫</p>
+          <h2 style="font-size:18px;font-weight:700;">JavaScript requis</h2>
+          <p style="color:#64748B;font-size:13px;">Haven nécessite JavaScript pour fonctionner.</p>
+        </div>
+      </div>
+    </noscript>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>
-

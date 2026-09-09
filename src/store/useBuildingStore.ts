@@ -185,9 +185,14 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
         });
       }
 
-      // Validate active session with backend
+      // Validate active session with backend — skip in Capacitor (no backend server)
+      const isCapacitor = typeof window !== 'undefined' && (
+        !!(window as any).Capacitor || 
+        window.location.protocol === 'capacitor:' ||
+        window.location.hostname === 'localhost' && window.location.protocol === 'https:'
+      );
       const token = typeof window !== 'undefined' ? localStorage.getItem('haven_session_token') : null;
-      if (token) {
+      if (token && !isCapacitor) {
         try {
           const meRes = await fetch('/api/auth/me', {
             headers: { Authorization: `Bearer ${token}` }
