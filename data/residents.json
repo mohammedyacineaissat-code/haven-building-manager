@@ -1,0 +1,30 @@
+[
+  {
+    "id": "3e879f20-9edb-473b-b3de-4cc33a88719d",
+    "buildingId": "f21dc045-dfcc-4470-a9f6-9701df6ecae5",
+    "buildingName": "Résidence El Bahdja",
+    "aptNumber": "204",
+    "floor": "2",
+    "lastName": "Haddad",
+    "firstName": "Karim",
+    "phone": "0555987654",
+    "passwordHash": "4dea392fe50f29b8c3e84ee2f42142e13d7b8d35ea984f385b43ae0acfa888dc1609f981a1817634abb6be6d9fb5004e9e292b557cc659c78b72101f83763bc1",
+    "salt": "61ffd825bb5c8b0b94fc0f05864bca6d",
+    "joinedAt": "sept. 2026",
+    "createdAt": "2026-09-05T17:46:09.060Z"
+  },
+  {
+    "id": "86f635bf-1b30-4806-b9af-19ebaba4086c",
+    "buildingId": "45ab09da-d767-4ae1-bc14-b486cdfe12b4",
+    "buildingName": "Majestic 14 (Oran)",
+    "aptNumber": "1402",
+    "floor": "14",
+    "lastName": "Benali",
+    "firstName": "Amine",
+    "phone": "0667123456",
+    "passwordHash": "cac319d889e43e11a33657584409b55d6b022f6e716ebffa0858ab4eeccf92a7ebf6ab3913471f003849858fa48ec4c9787c62042e1562c679d78769833e21ed",
+    "salt": "1d34f0b4bdfaf3266440e76e277bc1f8",
+    "joinedAt": "sept. 2026",
+    "createdAt": "2026-09-05T17:44:24.906Z"
+  }
+]

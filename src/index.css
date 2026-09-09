@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-elevate-bg dark:bg-elevate-bg-dark text-elevate-primary dark:text-elevate-primary-dark transition-colors duration-300;
+    font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* Clean minimalist scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300/60 dark:bg-slate-700/60 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400 dark:bg-slate-600;
+  }
+
+  [dir="rtl"], [dir="rtl"] * {
+    font-family: 'Cairo', 'Inter', sans-serif;
+  }
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] .font-display {
+    font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+@layer components {
+  /* Core Elevate Design Primitives */
+  .elevate-card {
+    @apply bg-white dark:bg-elevate-card-dark border border-slate-200/80 dark:border-slate-800/80 rounded-2xl sm:rounded-3xl shadow-card dark:shadow-card-dark transition-all duration-200;
+  }
+
+  .elevate-card-interactive {
+    @apply bg-white dark:bg-elevate-card-dark border border-slate-200/80 dark:border-slate-800/80 rounded-2xl sm:rounded-3xl shadow-card dark:shadow-card-dark hover:shadow-card-hover dark:hover:shadow-card-dark-hover hover:-translate-y-0.5 transition-all duration-200 cursor-pointer;
+  }
+
+  .elevate-glass {
+    @apply bg-white/85 dark:bg-elevate-card-dark/85 backdrop-blur-xl border border-slate-200/70 dark:border-slate-800/70 shadow-sm;
+  }
+
+  .elevate-glass-nav {
+    @apply bg-white/90 dark:bg-[#0D1422]/90 backdrop-blur-2xl border-t border-slate-200/80 dark:border-slate-800/80 shadow-card dark:shadow-card-dark;
+  }
+
+  .elevate-button-primary {
+    @apply bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-2xl shadow-sm hover:shadow-glow-emerald transition-all duration-200 flex items-center justify-center active:scale-[0.98];
+  }
+
+  .elevate-button-indigo {
+    @apply bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-semibold rounded-2xl shadow-sm hover:shadow-glow-indigo transition-all duration-200 flex items-center justify-center active:scale-[0.98];
+  }
+
+  .elevate-button-secondary {
+    @apply bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 font-medium rounded-2xl border border-slate-200/60 dark:border-slate-700/60 transition-all duration-200 flex items-center justify-center active:scale-[0.98];
+  }
+
+  .elevate-input {
+    @apply bg-white dark:bg-slate-900/90 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700/80 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 dark:focus:ring-emerald-500/20 dark:focus:border-emerald-400 transition-all duration-200 placeholder-slate-400 dark:placeholder-slate-500 shadow-sm;
+  }
+
+  .elevate-badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide;
+  }
+
+  /* Backwards compatibility aliases mapped to Elevate primitives */
+  .neu-card {
+    @apply elevate-card;
+  }
+  .neu-card:hover {
+    @apply hover:shadow-card-hover dark:hover:shadow-card-dark-hover;
+  }
+
+  .neu-button {
+    @apply elevate-button-secondary;
+  }
+  .neu-button:hover {
+    @apply -translate-y-0.5;
+  }
+
+  .neu-button-primary {
+    @apply elevate-button-primary;
+  }
+
+  .neu-input {
+    @apply elevate-input;
+  }
+
+  .neu-well {
+    @apply bg-slate-100/90 dark:bg-slate-900/60 rounded-xl border border-slate-200/60 dark:border-slate-800/60 flex items-center justify-center;
+  }
+
+  .haven-card {
+    @apply elevate-card;
+  }
+  
+  .haven-card-urgent {
+    @apply elevate-card relative overflow-hidden border-rose-200 dark:border-rose-900/40;
+  }
+  .haven-card-urgent::before {
+    content: '';
+    @apply absolute top-0 left-0 w-1.5 h-full bg-rose-500 shadow-sm;
+  }
+
+  .haven-nav-glass, .haven-header-glass {
+    @apply elevate-glass;
+  }
+
+  .phone-canvas {
+    @apply border border-slate-200/80 dark:border-slate-800/80 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.2)] bg-elevate-bg dark:bg-elevate-bg-dark overflow-hidden;
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}

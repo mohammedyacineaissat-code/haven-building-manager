@@ -1,0 +1,32 @@
+[
+  {
+    "token": "2829682a-3076-45a0-8146-c66adf8ecfa5",
+    "residentId": "86f635bf-1b30-4806-b9af-19ebaba4086c",
+    "createdAt": "2026-09-05T17:44:24.906Z"
+  },
+  {
+    "token": "e8c1a6b7-e15b-4d4f-afe9-62490e82fdb2",
+    "residentId": "86f635bf-1b30-4806-b9af-19ebaba4086c",
+    "createdAt": "2026-09-05T17:44:41.268Z"
+  },
+  {
+    "token": "d2443416-57c3-438c-a733-683f68cf7f10",
+    "residentId": "86f635bf-1b30-4806-b9af-19ebaba4086c",
+    "createdAt": "2026-09-05T17:44:46.375Z"
+  },
+  {
+    "token": "2ae12225-bc89-445c-8766-c7bfff6319a2",
+    "residentId": "86f635bf-1b30-4806-b9af-19ebaba4086c",
+    "createdAt": "2026-09-05T17:46:02.481Z"
+  },
+  {
+    "token": "a5063758-2cbf-4cf4-a63a-25e6205bc726",
+    "residentId": "3e879f20-9edb-473b-b3de-4cc33a88719d",
+    "createdAt": "2026-09-05T17:46:09.061Z"
+  },
+  {
+    "token": "52dd1675-8df0-403d-ba5e-6a367bde920c",
+    "residentId": "3e879f20-9edb-473b-b3de-4cc33a88719d",
+    "createdAt": "2026-09-05T17:46:14.348Z"
+  }
+]
