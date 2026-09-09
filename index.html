@@ -25,6 +25,22 @@
       <p style="font-size:14px;font-weight:500;color:#64748B;">Chargement de Haven…</p>
       <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
     </div>
+    <script>
+      window.addEventListener('error', function(event) {
+        console.error('[Haven] Global error:', event.error || event.message);
+        var fallback = document.getElementById('startup-fallback');
+        var root = document.getElementById('root');
+        if (fallback) {
+          fallback.innerHTML = '<div style="padding:24px;text-align:center;font-family:Inter,system-ui,sans-serif;"><p style="font-size:48px;">⚠️</p><h2 style="font-size:18px;font-weight:700;">Erreur de chargement</h2><p style="color:#64748B;font-size:13px;margin:8px 0 16px;">' + (event.message || 'Le module principal n\'a pas pu être chargé.') + '</p><button onclick="location.reload()" style="background:#10B981;color:#FFF;border:none;border-radius:12px;padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;">Réessayer</button></div>';
+          fallback.style.display = 'flex';
+          fallback.style.animation = 'none';
+        }
+        if (root) root.style.display = 'none';
+      });
+      window.addEventListener('unhandledrejection', function(event) {
+        console.error('[Haven] Promise rejection:', event.reason);
+      });
+    </script>
     <noscript>
       <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;padding:24px;text-align:center;">
         <div>

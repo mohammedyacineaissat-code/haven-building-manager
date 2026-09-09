@@ -37,17 +37,12 @@ if (fs.existsSync(buildGradlePath)) {
   // Update applicationId (determines app identity on the device)
   gradleContent = gradleContent.replace(/applicationId\s+["'][^"']+["']/, `applicationId "${appId}"`);
   
-  // Update namespace (determines R class and manifest package)
-  gradleContent = gradleContent.replace(/namespace\s*=\s*["'][^"']+["']/, `namespace = "${appId}"`);
-  
   fs.writeFileSync(buildGradlePath, gradleContent);
   
   // Verify the changes
   const verify = fs.readFileSync(buildGradlePath, 'utf8');
   const appIdMatch = verify.match(/applicationId\s+["']([^"']+)["']/);
-  const nsMatch = verify.match(/namespace\s*=\s*["']([^"']+)["']/);
   console.log(`  -> applicationId: ${appIdMatch ? appIdMatch[1] : 'NOT FOUND'}`);
-  console.log(`  -> namespace:     ${nsMatch ? nsMatch[1] : 'NOT FOUND'}`);
 } else {
   console.error('ERROR: build.gradle not found at', buildGradlePath);
   process.exit(1);
