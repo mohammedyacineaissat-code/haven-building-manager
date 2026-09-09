@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.haven.resident',
   appName: 'Haven Résidents',
   webDir: 'dist',
-  bundledWebRuntime: false,
   server: {
     androidScheme: 'https',
     cleartext: true

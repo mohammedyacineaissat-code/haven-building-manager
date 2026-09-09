@@ -2,7 +2,6 @@
   "appId": "com.haven.residence",
   "appName": "Haven Résidence",
   "webDir": "dist",
-  "bundledWebRuntime": false,
   "server": {
     "androidScheme": "https",
     "cleartext": true

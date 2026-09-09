@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.haven.manager',
   appName: 'Haven Syndic',
   webDir: 'dist',
-  bundledWebRuntime: false,
   server: {
     androidScheme: 'https',
     cleartext: true

@@ -45,7 +45,6 @@ export const AndroidPackagerModal: React.FC<AndroidPackagerModalProps> = ({
   "appId": "${appId}",
   "appName": "${appName}",
   "webDir": "dist",
-  "bundledWebRuntime": false,
   "server": {
     "androidScheme": "https",
     "cleartext": true
