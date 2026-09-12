@@ -122,4 +122,13 @@ export interface ResidentProfile {
   joinedAt: string;
 }
 
+export interface ManagerProfile {
+  id: string;
+  name: string;
+  emailOrPhone: string;
+  password?: string;
+  agencyName?: string;
+  createdAt: string;
+}
+
 export type UserRole = 'resident' | 'manager';

@@ -452,4 +452,37 @@ export interface Translations {
     footer_version: string;
     footer_copyright: string;
   };
+  // Manager Authentication
+  manager_auth: {
+    badge: string;
+    login_title: string;
+    login_subtitle: string;
+    signup_title: string;
+    signup_subtitle: string;
+    tab_login: string;
+    tab_signup: string;
+    name_label: string;
+    name_placeholder: string;
+    email_phone_label: string;
+    email_phone_placeholder: string;
+    agency_label: string;
+    agency_placeholder: string;
+    password_label: string;
+    password_placeholder: string;
+    password_confirm_label: string;
+    password_confirm_placeholder: string;
+    login_btn: string;
+    signup_btn: string;
+    switch_to_signup: string;
+    switch_to_login: string;
+    logout_btn: string;
+    logged_in_as: string;
+    error_empty_fields: string;
+    error_password_match: string;
+    error_password_short: string;
+    error_invalid_credentials: string;
+    error_account_exists: string;
+    success_registered: string;
+  };
 }
+

@@ -8,6 +8,7 @@ import {
   StaffContact, 
   ResidentReport, 
   ResidentProfile, 
+  ManagerProfile,
   UserRole, 
   IncidentStatus 
 } from '../types/building';
@@ -98,6 +99,26 @@ const getSavedResidentSession = (): ResidentProfile | null => {
   }
 };
 
+const getSavedRegisteredManagers = (): ManagerProfile[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('haven_registered_managers');
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const getSavedManagerSession = (): ManagerProfile | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('haven_saved_manager_profile');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 // Normalize clean strings
 const cleanStr = (val?: string) => (val || '').trim().toLowerCase();
 const cleanDigits = (val?: string) => (val || '').replace(/\D/g, '');
@@ -108,6 +129,8 @@ interface BuildingState {
   userApartment: string;
   residentProfile: ResidentProfile | null;
   registeredAccounts: ResidentProfile[];
+  managerProfile: ManagerProfile | null;
+  registeredManagers: ManagerProfile[];
   buildings: Building[];
   activeBuildingId: string;
   residentHomeBuildingId: string;
@@ -130,6 +153,9 @@ interface BuildingState {
   loginResidentWithCredentials: (buildingId: string, aptNumber: string, passwordOrPhone: string) => Promise<{ success: boolean; message?: string }>;
   loginResident: (profile: ResidentProfile) => Promise<void>;
   logoutResident: () => void;
+  registerManager: (data: { name: string; emailOrPhone: string; password: string; agencyName?: string }) => Promise<{ success: boolean; message?: string }>;
+  loginManager: (emailOrPhone: string, password: string) => Promise<{ success: boolean; message?: string }>;
+  logoutManager: () => void;
   toggleSound: () => void;
   clearUnreadAlerts: () => void;
   
@@ -147,12 +173,15 @@ interface BuildingState {
 }
 
 const initialSavedProfile = getSavedResidentSession();
+const initialSavedManager = getSavedManagerSession();
 
 export const useBuildingStore = create<BuildingState>((set, get) => ({
   currentRole: 'resident',
   userApartment: initialSavedProfile ? `Apt ${initialSavedProfile.aptNumber} (Étage ${initialSavedProfile.floor})` : '',
   residentProfile: initialSavedProfile,
   registeredAccounts: getSavedRegisteredAccounts(),
+  managerProfile: initialSavedManager,
+  registeredManagers: getSavedRegisteredManagers(),
   buildings: DEFAULT_BUILDINGS,
   activeBuildingId: initialSavedProfile?.buildingId || DEFAULT_BUILDINGS[0].id,
   residentHomeBuildingId: initialSavedProfile?.buildingId || DEFAULT_BUILDINGS[0].id,
@@ -543,6 +572,73 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
       localStorage.removeItem('haven_saved_resident_profile');
     } catch {
       // Ignore
+    }
+  },
+
+  registerManager: async (data: { name: string; emailOrPhone: string; password: string; agencyName?: string }) => {
+    const cleanIdentifier = data.emailOrPhone.trim().toLowerCase();
+    const cleanPwd = data.password.trim();
+    const currentManagers = get().registeredManagers;
+
+    const existing = currentManagers.find(m => m.emailOrPhone.trim().toLowerCase() === cleanIdentifier);
+    if (existing) {
+      return { success: false, message: 'Un compte avec cet identifiant existe déjà.' };
+    }
+
+    const newManager: ManagerProfile = {
+      id: `mgr-${Date.now()}`,
+      name: data.name.trim(),
+      emailOrPhone: cleanIdentifier,
+      password: cleanPwd,
+      agencyName: data.agencyName?.trim() || '',
+      createdAt: new Date().toISOString(),
+    };
+
+    const updated = [newManager, ...currentManagers];
+    set({
+      registeredManagers: updated,
+      managerProfile: newManager,
+    });
+
+    try {
+      localStorage.setItem('haven_registered_managers', JSON.stringify(updated));
+      localStorage.setItem('haven_saved_manager_profile', JSON.stringify(newManager));
+    } catch {
+      // Safe fallback
+    }
+
+    return { success: true };
+  },
+
+  loginManager: async (emailOrPhone: string, password: string) => {
+    const cleanIdentifier = emailOrPhone.trim().toLowerCase();
+    const cleanPwd = password.trim();
+    const currentManagers = get().registeredManagers;
+
+    const manager = currentManagers.find(
+      m => m.emailOrPhone.trim().toLowerCase() === cleanIdentifier && m.password === cleanPwd
+    );
+
+    if (!manager) {
+      return { success: false, message: 'Email/Téléphone ou mot de passe incorrect.' };
+    }
+
+    set({ managerProfile: manager });
+    try {
+      localStorage.setItem('haven_saved_manager_profile', JSON.stringify(manager));
+    } catch {
+      // Safe fallback
+    }
+
+    return { success: true };
+  },
+
+  logoutManager: () => {
+    set({ managerProfile: null });
+    try {
+      localStorage.removeItem('haven_saved_manager_profile');
+    } catch {
+      // Safe fallback
     }
   },
 

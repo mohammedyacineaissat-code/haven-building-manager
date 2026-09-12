@@ -37,8 +37,10 @@ import {
   LayoutDashboard,
   Trash2,
   Building2,
-  Phone
+  Phone,
+  LogOut
 } from 'lucide-react';
+import { ManagerAuthScreen } from './ManagerAuthScreen';
 
 type ManagerTab = 'dashboard' | 'tickets' | 'notices' | 'residents' | 'finances' | 'vendors';
 
@@ -61,6 +63,8 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
   const [calcAmount, setCalcAmount] = useState<string>('');
 
   const { 
+    managerProfile,
+    logoutManager,
     buildings, 
     activeBuildingId, 
     setActiveBuilding, 
@@ -71,6 +75,10 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
   } = useBuildingStore();
 
   const { t } = useLanguageStore();
+
+  if (!managerProfile) {
+    return <ManagerAuthScreen standalone={standalone} />;
+  }
 
   if (buildings.length === 0) {
     return (
@@ -198,8 +206,28 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
           })}
         </div>
 
-        {/* Sidebar Footer: Theme Toggle & Language Switcher */}
+        {/* Sidebar Footer: Manager Account, Theme Toggle & Language Switcher */}
         <div className="p-4 border-t border-slate-200/70 dark:border-slate-800/70 space-y-3 bg-slate-50/50 dark:bg-slate-900/30">
+          {/* Manager Account Profile & Logout */}
+          <div className="flex items-center justify-between p-2.5 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 shadow-sm">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-black text-xs flex items-center justify-center shrink-0 border border-emerald-500/20">
+                {managerProfile.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{managerProfile.name}</p>
+                <p className="text-[10px] text-slate-400 truncate">{managerProfile.agencyName || managerProfile.emailOrPhone}</p>
+              </div>
+            </div>
+            <button
+              onClick={logoutManager}
+              title={t.manager_auth.logout_btn}
+              className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors shrink-0"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{t.manager.dark_mode || 'Mode Sombre'}</span>
             <ThemeToggle />
@@ -292,9 +320,16 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
 
             {/* Header Right Actions */}
             <div className="shrink-0 flex items-center gap-2 sm:gap-3">
-              <div className="lg:hidden flex items-center gap-2">
+              <div className="lg:hidden flex items-center gap-1.5">
                 <ThemeToggle />
                 <LanguageSwitcher compact />
+                <button
+                  onClick={logoutManager}
+                  title={t.manager_auth.logout_btn}
+                  className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-colors shrink-0"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
               <button
                 onClick={() => setIsAnnouncementModalOpen(true)}
