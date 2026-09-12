@@ -329,69 +329,79 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
     const cleanPhone = accountData.phone.trim();
     const cleanPwd = accountData.password?.trim() || cleanPhone;
 
-    try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          buildingId: accountData.buildingId,
-          aptNumber: cleanAptNum,
-          floor: accountData.floor.trim(),
-          lastName: accountData.lastName.trim(),
-          firstName: accountData.firstName?.trim() || '',
-          phone: cleanPhone,
-          password: cleanPwd
-        })
-      });
+    const isCapacitor = typeof window !== 'undefined' && (
+      !!(window as any).Capacitor || 
+      window.location.protocol === 'capacitor:' ||
+      window.location.hostname === 'localhost'
+    );
 
-      const data = await res.json();
+    if (!isCapacitor) {
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            buildingId: accountData.buildingId,
+            aptNumber: cleanAptNum,
+            floor: accountData.floor.trim(),
+            lastName: accountData.lastName.trim(),
+            firstName: accountData.firstName?.trim() || '',
+            phone: cleanPhone,
+            password: cleanPwd
+          })
+        });
 
-      if (!res.ok || !data.success) {
-        return {
-          success: false,
-          message: data.message || 'Erreur lors de la création du compte sur le serveur.'
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          return {
+            success: false,
+            message: data.message || 'Erreur lors de la création du compte sur le serveur.'
+          };
+        }
+
+        if (data.token) {
+          localStorage.setItem('haven_session_token', data.token);
+        }
+
+        const registeredProfile: ResidentProfile = {
+          id: data.profile.id,
+          lastName: data.profile.lastName,
+          firstName: data.profile.firstName || '',
+          buildingId: data.profile.buildingId,
+          floor: data.profile.floor,
+          aptNumber: data.profile.aptNumber,
+          phone: data.profile.phone,
+          password: cleanPwd,
+          joinedAt: data.profile.joinedAt || new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
         };
+
+        const currentAccounts = get().registeredAccounts.filter(
+          a => !(a.buildingId === registeredProfile.buildingId && cleanApt(a.aptNumber) === cleanApt(registeredProfile.aptNumber))
+        );
+        const updatedAccounts = [registeredProfile, ...currentAccounts];
+
+        set({
+          registeredAccounts: updatedAccounts,
+          residentProfile: registeredProfile,
+          userApartment: `Apt ${registeredProfile.aptNumber} (Étage ${registeredProfile.floor})`,
+          residentHomeBuildingId: registeredProfile.buildingId,
+          activeBuildingId: registeredProfile.buildingId
+        });
+
+        localStorage.setItem('haven_registered_accounts', JSON.stringify(updatedAccounts));
+        localStorage.setItem('haven_saved_resident_profile', JSON.stringify(registeredProfile));
+
+        return { success: true };
+      } catch (err: any) {
+        console.warn('Backend call failed, falling back to local persistence:', err);
       }
+    }
 
-      if (data.token) {
-        localStorage.setItem('haven_session_token', data.token);
-      }
-
-      const registeredProfile: ResidentProfile = {
-        id: data.profile.id,
-        lastName: data.profile.lastName,
-        firstName: data.profile.firstName || '',
-        buildingId: data.profile.buildingId,
-        floor: data.profile.floor,
-        aptNumber: data.profile.aptNumber,
-        phone: data.profile.phone,
-        password: cleanPwd,
-        joinedAt: data.profile.joinedAt || new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
-      };
-
-      const currentAccounts = get().registeredAccounts.filter(
-        a => !(a.buildingId === registeredProfile.buildingId && cleanApt(a.aptNumber) === cleanApt(registeredProfile.aptNumber))
-      );
-      const updatedAccounts = [registeredProfile, ...currentAccounts];
-
-      set({
-        registeredAccounts: updatedAccounts,
-        residentProfile: registeredProfile,
-        userApartment: `Apt ${registeredProfile.aptNumber} (Étage ${registeredProfile.floor})`,
-        residentHomeBuildingId: registeredProfile.buildingId,
-        activeBuildingId: registeredProfile.buildingId
-      });
-
-      localStorage.setItem('haven_registered_accounts', JSON.stringify(updatedAccounts));
-      localStorage.setItem('haven_saved_resident_profile', JSON.stringify(registeredProfile));
-
-      return { success: true };
-    } catch (err: any) {
-      console.warn('Backend call failed, using local persistence fallback:', err);
-      // Fallback
-      const existing = get().registeredAccounts.find(
-        a => a.buildingId === accountData.buildingId && cleanStr(a.aptNumber) === cleanStr(cleanAptNum)
-      );
+    // Local Persistence Fallback (for Capacitor / Standalone)
+    const existing = get().registeredAccounts.find(
+      a => a.buildingId === accountData.buildingId && cleanStr(a.aptNumber) === cleanStr(cleanAptNum)
+    );
       if (existing) {
         return {
           success: false,
@@ -428,60 +438,69 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
   },
 
   loginResidentWithCredentials: async (buildingId: string, aptNumber: string, passwordOrPhone: string) => {
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          buildingId,
-          aptNumber: aptNumber.trim(),
-          password: passwordOrPhone.trim()
-        })
-      });
+    const isCapacitor = typeof window !== 'undefined' && (
+      !!(window as any).Capacitor || 
+      window.location.protocol === 'capacitor:' ||
+      window.location.hostname === 'localhost'
+    );
 
-      const data = await res.json();
+    if (!isCapacitor) {
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            buildingId,
+            aptNumber: aptNumber.trim(),
+            password: passwordOrPhone.trim()
+          })
+        });
 
-      if (!res.ok || !data.success) {
-        return {
-          success: false,
-          message: data.message || 'Identifiants incorrects ou compte introuvable.'
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          return {
+            success: false,
+            message: data.message || 'Identifiants incorrects ou compte introuvable.'
+          };
+        }
+
+        if (data.token) {
+          localStorage.setItem('haven_session_token', data.token);
+        }
+
+        const profile: ResidentProfile = {
+          id: data.profile.id,
+          lastName: data.profile.lastName,
+          firstName: data.profile.firstName || '',
+          buildingId: data.profile.buildingId,
+          floor: data.profile.floor,
+          aptNumber: data.profile.aptNumber,
+          phone: data.profile.phone,
+          joinedAt: data.profile.joinedAt || 'Récemment'
         };
+
+        const currentAccounts = get().registeredAccounts.filter(
+          a => !(a.buildingId === profile.buildingId && cleanApt(a.aptNumber) === cleanApt(profile.aptNumber))
+        );
+        const updatedAccounts = [profile, ...currentAccounts];
+
+        set({
+          residentProfile: profile,
+          registeredAccounts: updatedAccounts,
+          userApartment: `Apt ${profile.aptNumber} (Étage ${profile.floor})`,
+          residentHomeBuildingId: profile.buildingId,
+          activeBuildingId: profile.buildingId
+        });
+
+        localStorage.setItem('haven_registered_accounts', JSON.stringify(updatedAccounts));
+        localStorage.setItem('haven_saved_resident_profile', JSON.stringify(profile));
+
+        return { success: true };
+      } catch (err: any) {
+        console.warn('Backend login call failed, checking local store:', err);
       }
-
-      if (data.token) {
-        localStorage.setItem('haven_session_token', data.token);
-      }
-
-      const profile: ResidentProfile = {
-        id: data.profile.id,
-        lastName: data.profile.lastName,
-        firstName: data.profile.firstName || '',
-        buildingId: data.profile.buildingId,
-        floor: data.profile.floor,
-        aptNumber: data.profile.aptNumber,
-        phone: data.profile.phone,
-        joinedAt: data.profile.joinedAt || 'Récemment'
-      };
-
-      const currentAccounts = get().registeredAccounts.filter(
-        a => !(a.buildingId === profile.buildingId && cleanApt(a.aptNumber) === cleanApt(profile.aptNumber))
-      );
-      const updatedAccounts = [profile, ...currentAccounts];
-
-      set({
-        residentProfile: profile,
-        registeredAccounts: updatedAccounts,
-        userApartment: `Apt ${profile.aptNumber} (Étage ${profile.floor})`,
-        residentHomeBuildingId: profile.buildingId,
-        activeBuildingId: profile.buildingId
-      });
-
-      localStorage.setItem('haven_registered_accounts', JSON.stringify(updatedAccounts));
-      localStorage.setItem('haven_saved_resident_profile', JSON.stringify(profile));
-
-      return { success: true };
-    } catch (err: any) {
-      console.warn('Backend login call failed, checking local store:', err);
+    }
       // Fallback
       const targetApt = cleanStr(aptNumber);
       const enteredSecretDigits = cleanDigits(passwordOrPhone);
