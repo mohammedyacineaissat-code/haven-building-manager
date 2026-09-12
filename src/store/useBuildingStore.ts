@@ -224,6 +224,16 @@ const getSavedGrosTravaux = (): Record<string, GrosTravauxProject[]> => {
 const cleanStr = (val?: string) => (val || '').trim().toLowerCase();
 const cleanDigits = (val?: string) => (val || '').replace(/\D/g, '');
 const cleanApt = (val?: string) => (val || '').trim().toLowerCase().replace(/^apt\s*/i, '');
+const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+};
 
 interface BuildingState {
   currentRole: UserRole;
@@ -447,8 +457,12 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
         });
       }
 
-      // Fetch residents
-      const { data: resData, error: resErr } = await supabase.from('residents').select('*');
+      // Fetch residents (excluding manager accounts)
+      const { data: resData, error: resErr } = await supabase
+        .from('residents')
+        .select('*')
+        .neq('building_id', 'manager');
+
       if (!resErr && resData && resData.length > 0) {
         set({
           registeredAccounts: resData.map(r => ({
@@ -463,6 +477,67 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
             joinedAt: r.joined_at
           }))
         });
+      }
+
+      // Fetch managers from Supabase
+      try {
+        const { data: mgrData, error: mgrErr } = await supabase
+          .from('residents')
+          .select('*')
+          .eq('building_id', 'manager');
+
+        const remoteManagers: ManagerProfile[] = (!mgrErr && mgrData && mgrData.length > 0)
+          ? mgrData.map(m => ({
+              id: m.id,
+              name: m.first_name,
+              emailOrPhone: m.phone || m.apt_number.replace('MANAGER:', ''),
+              password: m.password,
+              agencyName: m.last_name !== 'Syndic' ? m.last_name : '',
+              createdAt: m.created_at || new Date().toISOString()
+            }))
+          : [];
+
+        const existingLocal = get().registeredManagers;
+        const mergedManagers = [...remoteManagers];
+        existingLocal.forEach(localM => {
+          if (!mergedManagers.some(m => m.emailOrPhone.toLowerCase() === localM.emailOrPhone.toLowerCase())) {
+            mergedManagers.push(localM);
+          }
+        });
+
+        // Automatically push any local manager to Supabase if not yet in Supabase
+        for (const localM of existingLocal) {
+          if (!remoteManagers.some(rm => rm.emailOrPhone.toLowerCase() === localM.emailOrPhone.toLowerCase())) {
+            try {
+              const syncUUID = (localM.id && localM.id.length === 36 && !localM.id.startsWith('mgr-')) 
+                ? localM.id 
+                : generateUUID();
+              await supabase.from('residents').upsert({
+                id: syncUUID,
+                first_name: localM.name,
+                last_name: localM.agencyName || 'Syndic',
+                building_id: 'manager',
+                floor: 'Bureau',
+                apt_number: `MANAGER:${localM.emailOrPhone.trim().toLowerCase()}`,
+                phone: localM.emailOrPhone,
+                password: localM.password,
+                joined_at: new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+              });
+              console.info('Synced existing local manager to Supabase:', localM.name);
+            } catch (syncErr) {
+              console.warn('Sync manager to Supabase note:', syncErr);
+            }
+          }
+        }
+
+        set({ registeredManagers: mergedManagers });
+        try {
+          localStorage.setItem('haven_registered_managers', JSON.stringify(mergedManagers));
+        } catch {
+          // Ignore
+        }
+      } catch (err) {
+        console.warn('Failed to sync remote managers from Supabase:', err);
       }
 
       // Fetch finances
@@ -526,19 +601,60 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
         };
       }
 
-      // 2. Insert into Supabase
+      // 2. Register with Supabase Auth to ensure user is saved in Supabase Authentication -> Users
+      let authUserId: string | null = null;
+      try {
+        const authEmail = `${cleanDigits(cleanPhone) || cleanPhone}@haven.dz`;
+        const authPassword = cleanPwd.length >= 6 ? cleanPwd : `${cleanPwd}123456`;
+        const { data: authData } = await supabase.auth.signUp({
+          email: authEmail,
+          password: authPassword,
+          options: {
+            data: {
+              first_name: accountData.firstName?.trim() || '',
+              last_name: accountData.lastName.trim(),
+              phone: cleanPhone,
+              building_id: accountData.buildingId,
+              floor: accountData.floor.trim(),
+              apt_number: cleanAptNum,
+              role: 'resident'
+            }
+          }
+        });
+
+        if (authData?.user?.id) {
+          authUserId = authData.user.id;
+          // Also save into public.profiles
+          await supabase.from('profiles').upsert({
+            id: authUserId,
+            role: 'resident',
+            first_name: accountData.firstName?.trim() || '',
+            last_name: accountData.lastName.trim(),
+            phone: cleanPhone
+          });
+        }
+      } catch (authErr) {
+        console.warn('Supabase Auth resident signUp note:', authErr);
+      }
+
+      // 3. Insert into Supabase residents table
+      const insertPayload: any = {
+        last_name: accountData.lastName.trim(),
+        first_name: accountData.firstName?.trim() || '',
+        building_id: accountData.buildingId,
+        floor: accountData.floor.trim(),
+        apt_number: cleanAptNum,
+        phone: cleanPhone,
+        password: cleanPwd,
+        joined_at: joinedStr
+      };
+      if (authUserId) {
+        insertPayload.id = authUserId;
+      }
+
       const { data: newRes, error: errInsert } = await supabase
         .from('residents')
-        .insert({
-          last_name: accountData.lastName.trim(),
-          first_name: accountData.firstName?.trim() || '',
-          building_id: accountData.buildingId,
-          floor: accountData.floor.trim(),
-          apt_number: cleanAptNum,
-          phone: cleanPhone,
-          password: cleanPwd,
-          joined_at: joinedStr
-        })
+        .insert(insertPayload)
         .select()
         .single();
 
@@ -550,7 +666,7 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
         };
       }
 
-      // 3. Update local state
+      // 4. Update local state
       const registeredProfile: ResidentProfile = {
         id: newRes.id,
         lastName: newRes.last_name,
@@ -677,6 +793,7 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
   },
 
   logoutResident: () => {
+    supabase.auth.signOut().catch(() => {});
     const token = typeof window !== 'undefined' ? localStorage.getItem('haven_session_token') : null;
     if (token) {
       fetch('/api/auth/logout', {
@@ -698,13 +815,73 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
     const cleanPwd = data.password.trim();
     const currentManagers = get().registeredManagers;
 
+    // 1. Check local & existing
     const existing = currentManagers.find(m => m.emailOrPhone.trim().toLowerCase() === cleanIdentifier);
     if (existing) {
       return { success: false, message: 'Un compte avec cet identifiant existe déjà.' };
     }
 
+    let authUserId: string | null = null;
+    const authEmail = cleanIdentifier.includes('@') 
+      ? cleanIdentifier 
+      : `${cleanDigits(cleanIdentifier) || cleanIdentifier}@haven.dz`;
+    const authPassword = cleanPwd.length >= 6 ? cleanPwd : `${cleanPwd}123456`;
+
+    // 2. Register in Supabase Auth to ensure user is saved in Supabase Authentication -> Users
+    try {
+      const { data: authData } = await supabase.auth.signUp({
+        email: authEmail,
+        password: authPassword,
+        options: {
+          data: {
+            name: data.name.trim(),
+            agency_name: data.agencyName?.trim() || '',
+            phone: cleanIdentifier,
+            role: 'manager'
+          }
+        }
+      });
+
+      if (authData?.user?.id) {
+        authUserId = authData.user.id;
+        const nameParts = data.name.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || data.name.trim();
+
+        // Save into public.profiles
+        await supabase.from('profiles').upsert({
+          id: authUserId,
+          role: 'manager',
+          first_name: firstName,
+          last_name: lastName,
+          phone: cleanIdentifier
+        });
+      }
+    } catch (authErr) {
+      console.warn('Supabase Auth manager signUp note:', authErr);
+    }
+
+    const newId = authUserId || generateUUID();
+
+    // 3. Persist in Supabase database table (residents with building_id: 'manager')
+    try {
+      await supabase.from('residents').upsert({
+        id: newId,
+        first_name: data.name.trim(),
+        last_name: data.agencyName?.trim() || 'Syndic',
+        building_id: 'manager',
+        floor: 'Bureau',
+        apt_number: `MANAGER:${cleanIdentifier}`,
+        phone: cleanIdentifier,
+        password: cleanPwd,
+        joined_at: new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+      });
+    } catch (dbErr) {
+      console.warn('Supabase manager DB insert error:', dbErr);
+    }
+
     const newManager: ManagerProfile = {
-      id: `mgr-${Date.now()}`,
+      id: newId,
       name: data.name.trim(),
       emailOrPhone: cleanIdentifier,
       password: cleanPwd,
@@ -712,7 +889,7 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
       createdAt: new Date().toISOString(),
     };
 
-    const updated = [newManager, ...currentManagers];
+    const updated = [newManager, ...currentManagers.filter(m => m.emailOrPhone.trim().toLowerCase() !== cleanIdentifier)];
     set({
       registeredManagers: updated,
       managerProfile: newManager,
@@ -731,8 +908,74 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
   loginManager: async (emailOrPhone: string, password: string) => {
     const cleanIdentifier = emailOrPhone.trim().toLowerCase();
     const cleanPwd = password.trim();
-    const currentManagers = get().registeredManagers;
 
+    // 1. Check against remote Supabase managers
+    try {
+      const { data: remoteManagers } = await supabase
+        .from('residents')
+        .select('*')
+        .eq('building_id', 'manager');
+
+      if (remoteManagers && remoteManagers.length > 0) {
+        const found = remoteManagers.find(m => 
+          (m.phone && m.phone.trim().toLowerCase() === cleanIdentifier) ||
+          (m.apt_number && m.apt_number.replace('MANAGER:', '').trim().toLowerCase() === cleanIdentifier)
+        );
+
+        if (found && found.password === cleanPwd) {
+          const profile: ManagerProfile = {
+            id: found.id,
+            name: found.first_name,
+            emailOrPhone: found.phone || found.apt_number.replace('MANAGER:', ''),
+            password: found.password,
+            agencyName: found.last_name !== 'Syndic' ? found.last_name : '',
+            createdAt: found.created_at || new Date().toISOString()
+          };
+          set({ managerProfile: profile });
+          try {
+            localStorage.setItem('haven_saved_manager_profile', JSON.stringify(profile));
+          } catch {}
+          return { success: true };
+        }
+      }
+    } catch (remoteErr) {
+      console.warn('Remote manager check note:', remoteErr);
+    }
+
+    // 2. Try Supabase Auth signInWithPassword
+    try {
+      const authEmail = cleanIdentifier.includes('@') 
+        ? cleanIdentifier 
+        : `${cleanDigits(cleanIdentifier) || cleanIdentifier}@haven.dz`;
+      const authPassword = cleanPwd.length >= 6 ? cleanPwd : `${cleanPwd}123456`;
+
+      const { data: authIn, error: authInErr } = await supabase.auth.signInWithPassword({
+        email: authEmail,
+        password: authPassword
+      });
+
+      if (!authInErr && authIn?.user) {
+        const userMeta = authIn.user.user_metadata || {};
+        const profile: ManagerProfile = {
+          id: authIn.user.id,
+          name: userMeta.name || 'Gestionnaire Syndic',
+          emailOrPhone: cleanIdentifier,
+          password: cleanPwd,
+          agencyName: userMeta.agency_name || '',
+          createdAt: authIn.user.created_at || new Date().toISOString()
+        };
+        set({ managerProfile: profile });
+        try {
+          localStorage.setItem('haven_saved_manager_profile', JSON.stringify(profile));
+        } catch {}
+        return { success: true };
+      }
+    } catch {
+      // Continue to local check
+    }
+
+    // 3. Fallback to local managers
+    const currentManagers = get().registeredManagers;
     const manager = currentManagers.find(
       m => m.emailOrPhone.trim().toLowerCase() === cleanIdentifier && m.password === cleanPwd
     );
@@ -752,6 +995,7 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
   },
 
   logoutManager: () => {
+    supabase.auth.signOut().catch(() => {});
     set({ managerProfile: null });
     try {
       localStorage.removeItem('haven_saved_manager_profile');
