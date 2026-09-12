@@ -74,7 +74,7 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
 
   if (buildings.length === 0) {
     return (
-      <div className={`w-full h-full bg-elevate-bg dark:bg-elevate-bg-dark flex flex-col font-sans transition-colors duration-300 ${standalone ? 'min-h-[840px]' : 'min-h-[780px]'}`}>
+      <div className="w-full min-h-screen flex-1 bg-elevate-bg dark:bg-elevate-bg-dark flex flex-col font-sans transition-colors duration-300">
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in-95 duration-300">
           <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-blue-200/50 dark:border-blue-800/30 mx-auto">
             <LayoutDashboard className="w-10 h-10 text-blue-600 dark:text-blue-400" />
@@ -150,10 +150,10 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
   ];
 
   return (
-    <div className={`w-full h-full bg-elevate-bg dark:bg-elevate-bg-dark text-slate-900 dark:text-slate-100 flex flex-col lg:flex-row font-sans transition-colors duration-300 ${standalone ? 'min-h-[840px]' : 'min-h-[780px]'}`}>
+    <div className="w-full min-h-screen flex-1 bg-elevate-bg dark:bg-elevate-bg-dark text-slate-900 dark:text-slate-100 flex flex-col lg:flex-row font-sans transition-colors duration-300">
       
       {/* Desktop Sidebar (hidden on mobile) */}
-      <aside className="hidden lg:flex flex-col w-64 bg-white/90 dark:bg-[#101828]/90 backdrop-blur-xl border-r border-slate-200/70 dark:border-slate-800/70 z-30 shrink-0">
+      <aside className="hidden lg:flex flex-col w-64 xl:w-72 bg-white/90 dark:bg-[#101828]/90 backdrop-blur-xl border-r border-slate-200/70 dark:border-slate-800/70 z-30 shrink-0">
         <div className="p-6">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-white font-black text-base flex items-center justify-center shadow-md shadow-emerald-500/20">
@@ -308,7 +308,7 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
         </div>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-28">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 lg:pb-8">
           
           {/* DASHBOARD / OPERATIONS TAB */}
           {activeTab === 'dashboard' && (
@@ -534,16 +534,12 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
 
           {/* FINANCES TAB */}
           {activeTab === 'finances' && (
-            <div className="elevate-card p-5 transition-colors duration-300">
-              <FinancesBoard />
-            </div>
+            <FinancesBoard onOpenExpenseModal={() => setIsExpenseModalOpen(true)} />
           )}
 
           {/* RESIDENTS TAB */}
           {activeTab === 'residents' && (
-            <div className="elevate-card p-5 transition-colors duration-300">
-              <ResidentsListView />
-            </div>
+            <ResidentsListView />
           )}
 
           {/* NOTICES TAB */}

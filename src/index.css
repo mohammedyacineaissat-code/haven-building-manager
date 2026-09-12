@@ -3,6 +3,21 @@
 @tailwind utilities;
 
 @layer base {
+  html, body {
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
   body {
     @apply bg-elevate-bg dark:bg-elevate-bg-dark text-elevate-primary dark:text-elevate-primary-dark transition-colors duration-300;
     font-family: 'Inter', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
