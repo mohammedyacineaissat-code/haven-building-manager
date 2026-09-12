@@ -41,6 +41,18 @@ export function App() {
     }
   }, [initializeData, initTheme]);
 
+  // If building a specific target via Vite build (for Capacitor APKs)
+  const appTarget = import.meta.env.VITE_APP_TARGET;
+
+  if (appTarget === 'resident') {
+    return <ResidentApp standalone={true} />;
+  }
+  
+  if (appTarget === 'manager') {
+    return <ManagerApp standalone={true} />;
+  }
+
+  // Fallback for local web development: show the dual preview
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col font-sans selection:bg-emerald-500 selection:text-white transition-colors duration-300">
       
