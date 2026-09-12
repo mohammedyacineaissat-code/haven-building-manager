@@ -7,50 +7,44 @@ export const FinancesBoard: React.FC = () => {
   const activeBuildingId = useBuildingStore(state => state.activeBuildingId);
   const buildings = useBuildingStore(state => state.buildings);
   const allNotices = useBuildingStore(state => state.notices);
+  const finances = useBuildingStore(state => state.finances);
+  const updateFinances = useBuildingStore(state => state.updateFinances);
 
   const selectedBuilding = buildings.find(b => b.id === activeBuildingId) || buildings[0];
   const notices = allNotices.filter(n => !n.buildingId || n.buildingId === activeBuildingId);
 
   const { t } = useLanguageStore();
 
+  const currentFinances = selectedBuilding ? finances[selectedBuilding.id] : null;
+
   const [monthlyCharge, setMonthlyCharge] = useState<number>(2500);
   const [paidApts, setPaidApts] = useState<Set<string>>(new Set());
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-    if (!selectedBuilding?.id) return;
-    const storedStr = localStorage.getItem(`finances_${selectedBuilding.id}`);
-    if (storedStr) {
-      try {
-        const parsed = JSON.parse(storedStr);
-        setMonthlyCharge(parsed.monthlyCharge || 2500);
-        setPaidApts(new Set(parsed.paidApts || []));
-      } catch (e) {}
+    if (currentFinances) {
+      setMonthlyCharge(currentFinances.monthlyCharge || 2500);
+      setPaidApts(new Set(currentFinances.paidApts || []));
     } else {
-      setPaidApts(new Set());
       setMonthlyCharge(2500);
+      setPaidApts(new Set());
     }
-  }, [selectedBuilding?.id]);
+  }, [currentFinances, selectedBuilding?.id]);
 
-  const saveFinances = (charge: number, apts: Set<string>) => {
+  const toggleApt = async (apt: string) => {
     if (!selectedBuilding) return;
-    localStorage.setItem(`finances_${selectedBuilding.id}`, JSON.stringify({
-      monthlyCharge: charge,
-      paidApts: Array.from(apts)
-    }));
-  };
-
-  const toggleApt = (apt: string) => {
     const next = new Set<string>(paidApts);
     if (next.has(apt)) next.delete(apt);
     else next.add(apt);
+    
     setPaidApts(next);
-    saveFinances(monthlyCharge, next);
+    await updateFinances(selectedBuilding.id, monthlyCharge, Array.from(next));
   };
 
-  const handleSaveCharge = () => {
+  const handleSaveCharge = async () => {
     setIsEditing(false);
-    saveFinances(monthlyCharge, paidApts);
+    if (!selectedBuilding) return;
+    await updateFinances(selectedBuilding.id, monthlyCharge, Array.from(paidApts));
   };
 
   if (!selectedBuilding) return null;

@@ -43,12 +43,16 @@ export function App() {
 
   // If building a specific target via Vite build (for Capacitor APKs)
   const appTarget = import.meta.env.VITE_APP_TARGET;
+  
+  // Allow local preview testing via URL query (e.g. ?app=manager)
+  const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+  const queryTarget = urlParams.get('app');
 
-  if (appTarget === 'resident') {
+  if (appTarget === 'resident' || queryTarget === 'resident') {
     return <ResidentApp standalone={true} />;
   }
   
-  if (appTarget === 'manager') {
+  if (appTarget === 'manager' || queryTarget === 'manager') {
     return <ManagerApp standalone={true} />;
   }
 

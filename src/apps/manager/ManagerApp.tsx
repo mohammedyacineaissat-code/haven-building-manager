@@ -135,10 +135,51 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
   const calculatedQuota = parsedCalcAmount > 0 ? (parsedCalcAmount / totalUnits).toFixed(0) : '0';
 
   return (
-    <div className={`w-full h-full bg-elevate-bg dark:bg-elevate-bg-dark text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-300 ${standalone ? 'min-h-[840px]' : 'min-h-[780px]'}`}>
+    <div className={`w-full h-full bg-elevate-bg dark:bg-elevate-bg-dark text-slate-900 dark:text-slate-100 flex flex-col lg:flex-row font-sans transition-colors duration-300 ${standalone ? 'min-h-[840px]' : 'min-h-[780px]'}`}>
       
-      {/* Manager Header & Building Context */}
-      <div className="bg-white/85 dark:bg-[#0D1524]/85 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 px-5 sm:px-8 py-4 transition-colors duration-300 z-10">
+      {/* Desktop Sidebar (hidden on mobile) */}
+      <aside className="hidden lg:flex flex-col w-64 bg-white/90 dark:bg-[#101828]/90 backdrop-blur-xl border-r border-slate-200/70 dark:border-slate-800/70 z-30">
+        <div className="p-6">
+          <h1 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">HAVEN</h1>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">Manager Suite</p>
+        </div>
+        <div className="flex-1 px-4 space-y-2 mt-4">
+          {[
+            { id: 'dashboard' as ManagerTab, label: t.manager.outage_ops_tab, icon: LayoutDashboard },
+            { id: 'notices' as ManagerTab, label: t.manager.bulletins_tab, icon: Bell },
+            { id: 'residents' as ManagerTab, label: t.residents_list.title, icon: Users },
+            { id: 'finances' as ManagerTab, label: t.manager.finances_tab, icon: Wallet },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 outline-none ${
+                  isActive 
+                    ? 'bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold' 
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                <div className="relative">
+                  <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+                  {tab.id === 'dashboard' && currentBuildingIncidents.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white dark:ring-[#101828]"></span>
+                  )}
+                </div>
+                <span className="text-sm">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
+      {/* Main Content Column */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+
+        {/* Manager Header & Building Context */}
+        <div className="bg-white/85 dark:bg-[#0D1524]/85 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 px-5 sm:px-8 py-4 transition-colors duration-300 z-10">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0 relative">
             <button 
@@ -442,8 +483,8 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
 
       </main>
 
-      {/* Modern Floating Bottom Nav */}
-      <nav className="sticky bottom-0 left-0 right-0 z-20 px-4 pb-4 pt-2 bg-transparent">
+      {/* Modern Floating Bottom Nav (hidden on desktop) */}
+      <nav className="sticky bottom-0 left-0 right-0 z-20 px-4 pb-4 pt-2 bg-transparent lg:hidden">
         <div className="max-w-md mx-auto bg-white/90 dark:bg-[#101828]/90 backdrop-blur-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-card-hover dark:shadow-card-dark-hover rounded-full p-1.5 flex items-center justify-between transition-colors duration-300">
           {[
             { id: 'dashboard' as ManagerTab, label: t.manager.outage_ops_tab, icon: LayoutDashboard },
@@ -475,6 +516,8 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
           })}
         </div>
       </nav>
+      
+      </div> {/* End Main Content Column */}
 
       {/* Modals */}
       <AddExpenseModal

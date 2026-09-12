@@ -117,6 +117,7 @@ interface BuildingState {
   staffContacts: StaffContact[];
   contractorContacts: EmergencyContact[];
   residentReports: ResidentReport[];
+  finances: Record<string, { monthlyCharge: number, paidApts: string[] }>;
   unreadAlertCount: number;
   soundEnabled: boolean;
   isLoading: boolean;
@@ -142,6 +143,7 @@ interface BuildingState {
   submitResidentReport: (report: any) => Promise<void>;
   updateTicketStatus: (ticketId: string, status: 'pending' | 'in_review' | 'resolved') => Promise<void>;
   addNotice: (notice: any) => Promise<void>;
+  updateFinances: (buildingId: string, monthlyCharge: number, paidApts: string[]) => Promise<void>;
 }
 
 const initialSavedProfile = getSavedResidentSession();
@@ -160,6 +162,7 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
   staffContacts: STAFF_CONTACTS,
   contractorContacts: CONTRACTOR_CONTACTS,
   residentReports: [],
+  finances: {},
   unreadAlertCount: 0,
   soundEnabled: true,
   isLoading: false,
@@ -296,6 +299,37 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
           }))
         });
       }
+
+      // Fetch residents
+      const { data: resData, error: resErr } = await supabase.from('residents').select('*');
+      if (!resErr && resData && resData.length > 0) {
+        set({
+          registeredAccounts: resData.map(r => ({
+            id: r.id,
+            lastName: r.last_name,
+            firstName: r.first_name,
+            buildingId: r.building_id,
+            floor: r.floor,
+            aptNumber: r.apt_number,
+            phone: r.phone,
+            password: r.password,
+            joinedAt: r.joined_at
+          }))
+        });
+      }
+
+      // Fetch finances
+      const { data: finData, error: finErr } = await supabase.from('finances').select('*');
+      if (!finErr && finData && finData.length > 0) {
+        const financesMap: Record<string, { monthlyCharge: number, paidApts: string[] }> = {};
+        finData.forEach(f => {
+          financesMap[f.building_id] = {
+            monthlyCharge: Number(f.monthly_charge) || 2500,
+            paidApts: Array.isArray(f.paid_apts) ? f.paid_apts : []
+          };
+        });
+        set({ finances: financesMap });
+      }
     } catch (err) {
       console.info('State initialized clean; Supabase sync available:', err);
     }
@@ -328,199 +362,110 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
     const cleanAptNum = accountData.aptNumber.trim();
     const cleanPhone = accountData.phone.trim();
     const cleanPwd = accountData.password?.trim() || cleanPhone;
+    const joinedStr = new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
 
-    const isCapacitor = typeof window !== 'undefined' && (
-      !!(window as any).Capacitor || 
-      window.location.protocol === 'capacitor:' ||
-      window.location.hostname === 'localhost'
-    );
+    try {
+      // 1. Check if an account already exists for this building & apartment
+      const { data: existing, error: errCheck } = await supabase
+        .from('residents')
+        .select('id')
+        .eq('building_id', accountData.buildingId)
+        .eq('apt_number', cleanAptNum);
 
-    if (!isCapacitor) {
-      try {
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            buildingId: accountData.buildingId,
-            aptNumber: cleanAptNum,
-            floor: accountData.floor.trim(),
-            lastName: accountData.lastName.trim(),
-            firstName: accountData.firstName?.trim() || '',
-            phone: cleanPhone,
-            password: cleanPwd
-          })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          return {
-            success: false,
-            message: data.message || 'Erreur lors de la création du compte sur le serveur.'
-          };
-        }
-
-        if (data.token) {
-          localStorage.setItem('haven_session_token', data.token);
-        }
-
-        const registeredProfile: ResidentProfile = {
-          id: data.profile.id,
-          lastName: data.profile.lastName,
-          firstName: data.profile.firstName || '',
-          buildingId: data.profile.buildingId,
-          floor: data.profile.floor,
-          aptNumber: data.profile.aptNumber,
-          phone: data.profile.phone,
-          password: cleanPwd,
-          joinedAt: data.profile.joinedAt || new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
-        };
-
-        const currentAccounts = get().registeredAccounts.filter(
-          a => !(a.buildingId === registeredProfile.buildingId && cleanApt(a.aptNumber) === cleanApt(registeredProfile.aptNumber))
-        );
-        const updatedAccounts = [registeredProfile, ...currentAccounts];
-
-        set({
-          registeredAccounts: updatedAccounts,
-          residentProfile: registeredProfile,
-          userApartment: `Apt ${registeredProfile.aptNumber} (Étage ${registeredProfile.floor})`,
-          residentHomeBuildingId: registeredProfile.buildingId,
-          activeBuildingId: registeredProfile.buildingId
-        });
-
-        localStorage.setItem('haven_registered_accounts', JSON.stringify(updatedAccounts));
-        localStorage.setItem('haven_saved_resident_profile', JSON.stringify(registeredProfile));
-
-        return { success: true };
-      } catch (err: any) {
-        console.warn('Backend call failed, falling back to local persistence:', err);
-      }
-    }
-
-    // Local Persistence Fallback (for Capacitor / Standalone)
-    const existing = get().registeredAccounts.find(
-      a => a.buildingId === accountData.buildingId && cleanStr(a.aptNumber) === cleanStr(cleanAptNum)
-    );
-      if (existing) {
+      if (existing && existing.length > 0) {
         return {
           success: false,
           message: `Un compte existe déjà pour l'appartement ${cleanAptNum} dans cette résidence.`
         };
       }
 
-      const newProfile: ResidentProfile = {
-        id: `prof-${Date.now()}`,
-        lastName: accountData.lastName.trim(),
-        firstName: accountData.firstName?.trim() || '',
-        buildingId: accountData.buildingId,
-        floor: accountData.floor.trim(),
-        aptNumber: cleanAptNum,
-        phone: cleanPhone,
-        password: cleanPwd,
-        joinedAt: new Date().toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+      // 2. Insert into Supabase
+      const { data: newRes, error: errInsert } = await supabase
+        .from('residents')
+        .insert({
+          last_name: accountData.lastName.trim(),
+          first_name: accountData.firstName?.trim() || '',
+          building_id: accountData.buildingId,
+          floor: accountData.floor.trim(),
+          apt_number: cleanAptNum,
+          phone: cleanPhone,
+          password: cleanPwd,
+          joined_at: joinedStr
+        })
+        .select()
+        .single();
+
+      if (errInsert || !newRes) {
+        console.error('Supabase insert error:', errInsert);
+        return {
+          success: false,
+          message: 'Erreur lors de la création du compte sur le serveur.'
+        };
+      }
+
+      // 3. Update local state
+      const registeredProfile: ResidentProfile = {
+        id: newRes.id,
+        lastName: newRes.last_name,
+        firstName: newRes.first_name,
+        buildingId: newRes.building_id,
+        floor: newRes.floor,
+        aptNumber: newRes.apt_number,
+        phone: newRes.phone,
+        password: newRes.password,
+        joinedAt: newRes.joined_at
       };
 
-      const updatedAccounts = [newProfile, ...get().registeredAccounts];
+      const updatedAccounts = [registeredProfile, ...get().registeredAccounts];
+
       set({
         registeredAccounts: updatedAccounts,
-        residentProfile: newProfile,
-        userApartment: `Apt ${newProfile.aptNumber} (Étage ${newProfile.floor})`,
-        residentHomeBuildingId: newProfile.buildingId,
-        activeBuildingId: newProfile.buildingId
+        residentProfile: registeredProfile,
+        userApartment: `Apt ${registeredProfile.aptNumber} (Étage ${registeredProfile.floor})`,
+        residentHomeBuildingId: registeredProfile.buildingId,
+        activeBuildingId: registeredProfile.buildingId
       });
 
-      localStorage.setItem('haven_registered_accounts', JSON.stringify(updatedAccounts));
-      localStorage.setItem('haven_saved_resident_profile', JSON.stringify(newProfile));
+      localStorage.setItem('haven_saved_resident_profile', JSON.stringify(registeredProfile));
 
       return { success: true };
+    } catch (err: any) {
+      console.error('Registration failed:', err);
+      return { success: false, message: 'Erreur de connexion au serveur.' };
     }
   },
-
   loginResidentWithCredentials: async (buildingId: string, aptNumber: string, passwordOrPhone: string) => {
-    const isCapacitor = typeof window !== 'undefined' && (
-      !!(window as any).Capacitor || 
-      window.location.protocol === 'capacitor:' ||
-      window.location.hostname === 'localhost'
-    );
-
-    if (!isCapacitor) {
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            buildingId,
-            aptNumber: aptNumber.trim(),
-            password: passwordOrPhone.trim()
-          })
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-          return {
-            success: false,
-            message: data.message || 'Identifiants incorrects ou compte introuvable.'
-          };
-        }
-
-        if (data.token) {
-          localStorage.setItem('haven_session_token', data.token);
-        }
-
-        const profile: ResidentProfile = {
-          id: data.profile.id,
-          lastName: data.profile.lastName,
-          firstName: data.profile.firstName || '',
-          buildingId: data.profile.buildingId,
-          floor: data.profile.floor,
-          aptNumber: data.profile.aptNumber,
-          phone: data.profile.phone,
-          joinedAt: data.profile.joinedAt || 'Récemment'
-        };
-
-        const currentAccounts = get().registeredAccounts.filter(
-          a => !(a.buildingId === profile.buildingId && cleanApt(a.aptNumber) === cleanApt(profile.aptNumber))
-        );
-        const updatedAccounts = [profile, ...currentAccounts];
-
-        set({
-          residentProfile: profile,
-          registeredAccounts: updatedAccounts,
-          userApartment: `Apt ${profile.aptNumber} (Étage ${profile.floor})`,
-          residentHomeBuildingId: profile.buildingId,
-          activeBuildingId: profile.buildingId
-        });
-
-        localStorage.setItem('haven_registered_accounts', JSON.stringify(updatedAccounts));
-        localStorage.setItem('haven_saved_resident_profile', JSON.stringify(profile));
-
-        return { success: true };
-      } catch (err: any) {
-        console.warn('Backend login call failed, checking local store:', err);
-      }
-    }
-      // Fallback
+    try {
       const targetApt = cleanStr(aptNumber);
-      const enteredSecretDigits = cleanDigits(passwordOrPhone);
-      const enteredSecretRaw = cleanStr(passwordOrPhone);
+      
+      const { data: residents, error } = await supabase
+        .from('residents')
+        .select('*')
+        .eq('building_id', buildingId);
 
-      const account = get().registeredAccounts.find(
-        a => (a.buildingId === buildingId || cleanStr(a.buildingId) === cleanStr(buildingId)) && (
-          cleanStr(a.aptNumber) === targetApt ||
-          cleanStr(`apt ${a.aptNumber}`) === targetApt ||
-          targetApt.endsWith(cleanStr(a.aptNumber))
-        )
+      if (error || !residents || residents.length === 0) {
+        return {
+          success: false,
+          message: 'Aucun compte trouvé pour cette résidence.'
+        };
+      }
+
+      // Find by apt number (flexible match like the local fallback)
+      const account = residents.find(a => 
+        cleanStr(a.apt_number) === targetApt ||
+        cleanStr(`apt ${a.apt_number}`) === targetApt ||
+        targetApt.endsWith(cleanStr(a.apt_number))
       );
 
       if (!account) {
         return {
           success: false,
-          message: `Aucun compte trouvé pour l'appartement "${aptNumber}" dans cette résidence. Cliquez sur "Créer un Compte" pour vous inscrire.`
+          message: `Aucun compte trouvé pour l'appartement "${aptNumber}" dans cette résidence.`
         };
       }
 
+      const enteredSecretDigits = cleanDigits(passwordOrPhone);
+      const enteredSecretRaw = cleanStr(passwordOrPhone);
       const accountPhoneDigits = cleanDigits(account.phone);
       const accountPwdRaw = cleanStr(account.password);
 
@@ -532,19 +477,41 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
       if (!isMatch) {
         return {
           success: false,
-          message: `Mot de passe ou numéro de téléphone incorrect pour l'appartement ${account.aptNumber}.`
+          message: `Mot de passe ou numéro de téléphone incorrect pour l'appartement ${account.apt_number}.`
         };
       }
 
+      const profile: ResidentProfile = {
+        id: account.id,
+        lastName: account.last_name,
+        firstName: account.first_name || '',
+        buildingId: account.building_id,
+        floor: account.floor,
+        aptNumber: account.apt_number,
+        phone: account.phone,
+        password: account.password,
+        joinedAt: account.joined_at || 'Récemment'
+      };
+
+      const currentAccounts = get().registeredAccounts.filter(
+        a => !(a.buildingId === profile.buildingId && cleanApt(a.aptNumber) === cleanApt(profile.aptNumber))
+      );
+      const updatedAccounts = [profile, ...currentAccounts];
+
       set({
-        residentProfile: account,
-        userApartment: `Apt ${account.aptNumber} (Étage ${account.floor})`,
-        residentHomeBuildingId: account.buildingId,
-        activeBuildingId: account.buildingId
+        residentProfile: profile,
+        registeredAccounts: updatedAccounts,
+        userApartment: `Apt ${profile.aptNumber} (Étage ${profile.floor})`,
+        residentHomeBuildingId: profile.buildingId,
+        activeBuildingId: profile.buildingId
       });
 
-      localStorage.setItem('haven_saved_resident_profile', JSON.stringify(account));
+      localStorage.setItem('haven_saved_resident_profile', JSON.stringify(profile));
+
       return { success: true };
+    } catch (err: any) {
+      console.error('Login failed:', err);
+      return { success: false, message: 'Erreur de connexion au serveur.' };
     }
   },
 
@@ -910,6 +877,30 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
       });
     } catch (err) {
       console.debug('DB notice insert error:', err);
+    }
+  },
+
+  updateFinances: async (buildingId: string, monthlyCharge: number, paidApts: string[]) => {
+    set(state => ({
+      finances: {
+        ...state.finances,
+        [buildingId]: { monthlyCharge, paidApts }
+      }
+    }));
+
+    try {
+      const { error } = await supabase
+        .from('finances')
+        .upsert({
+          building_id: buildingId,
+          monthly_charge: monthlyCharge,
+          paid_apts: paidApts,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'building_id' });
+
+      if (error) console.error('DB finance upsert error:', error);
+    } catch (err) {
+      console.error('DB finance error:', err);
     }
   }
 }));
