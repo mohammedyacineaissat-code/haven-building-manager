@@ -76,6 +76,46 @@ export interface BuildingNotice {
     totalAmount: number;
     perResidentAmount: number;
   };
+  grosTravauxDetails?: {
+    projectId: string;
+    totalCost: number;
+    perUnitQuota: number;
+    paidCount: number;
+    totalUnits: number;
+    status: GrosTravauxStatus;
+  };
+}
+
+export type FixedChargeCategory = 'salary' | 'contract' | 'utility' | 'maintenance' | 'other';
+
+export interface FixedCharge {
+  id: string;
+  buildingId: string;
+  title: string;
+  category: FixedChargeCategory;
+  monthlyAmount: number;
+  payee?: string;
+  frequency?: 'monthly' | 'quarterly' | 'annual';
+  isPaidThisMonth: boolean;
+  notes?: string;
+  updatedAt?: string;
+}
+
+export type GrosTravauxStatus = 'voting' | 'collecting' | 'in_progress' | 'completed';
+
+export interface GrosTravauxProject {
+  id: string;
+  buildingId: string;
+  title: string;
+  description: string;
+  totalCost: number;
+  perUnitQuota: number;
+  deadline: string;
+  status: GrosTravauxStatus;
+  contractorName?: string;
+  contractorPhone?: string;
+  paidApts: string[];
+  createdAt: string;
 }
 
 export interface EmergencyContact {

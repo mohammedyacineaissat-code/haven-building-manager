@@ -16,8 +16,11 @@ import {
   LayoutGrid,
   Columns,
   Receipt,
-  Building
+  Building,
+  Hammer
 } from 'lucide-react';
+import { FixedChargesTab } from './FixedChargesTab';
+import { GrosTravauxTab } from './GrosTravauxTab';
 
 interface FinancesBoardProps {
   onOpenExpenseModal?: () => void;
@@ -30,6 +33,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
   const registeredAccounts = useBuildingStore(state => state.registeredAccounts);
   const finances = useBuildingStore(state => state.finances);
   const updateFinances = useBuildingStore(state => state.updateFinances);
+  const fixedCharges = useBuildingStore(state => state.fixedCharges);
 
   const selectedBuilding = buildings.find(b => b.id === activeBuildingId) || buildings[0];
   const notices = allNotices.filter(n => !n.buildingId || n.buildingId === (selectedBuilding?.id || activeBuildingId));
@@ -45,7 +49,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
   const [searchQuery, setSearchQuery] = useState('');
   
   // Default to 'grid' view so all 42 apartments expand gracefully across the screen
-  const [viewLayout, setViewLayout] = useState<'grid' | 'split' | 'expenses'>('grid');
+  const [viewLayout, setViewLayout] = useState<'grid' | 'fixed' | 'gros_travaux' | 'split' | 'expenses'>('grid');
 
   useEffect(() => {
     if (currentFinances) {
@@ -102,8 +106,12 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
     return sum + amt;
   }, 0);
 
+  const buildingFixed = fixedCharges[selectedBuilding.id] || [];
+  const settledFixedCharges = buildingFixed.filter(c => c.isPaidThisMonth).reduce((sum, c) => sum + (Number(c.monthlyAmount) || 0), 0);
+  const totalCombinedExpenses = totalExpenses + settledFixedCharges;
+
   const totalCollected = paidApts.size * monthlyCharge;
-  const remaining = totalCollected - totalExpenses;
+  const remaining = totalCollected - totalCombinedExpenses;
   const totalDebt = Math.max(0, (totalUnits - paidApts.size) * monthlyCharge);
   const collectionRate = totalUnits > 0 ? Math.min(100, Math.round((paidApts.size / totalUnits) * 100)) : 0;
 
@@ -159,34 +167,46 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
 
         {/* Action Controls & View Switcher */}
         <div className="flex items-center flex-wrap gap-2.5">
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-inner">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-inner overflow-x-auto max-w-full scrollbar-none">
             <button
               onClick={() => setViewLayout('grid')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap ${
                 viewLayout === 'grid'
                   ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm font-extrabold'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
-              title={t.finances.tab_grid}
+              title={t.finances.tab_dues}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              <span>{t.finances.tab_grid}</span>
+              <span>{t.finances.tab_dues}</span>
             </button>
             <button
-              onClick={() => setViewLayout('split')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
-                viewLayout === 'split'
+              onClick={() => setViewLayout('fixed')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                viewLayout === 'fixed'
                   ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm font-extrabold'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
-              title={t.finances.tab_split}
+              title={t.finances.tab_fixed}
             >
-              <Columns className="w-3.5 h-3.5" />
-              <span>{t.finances.tab_split}</span>
+              <Wallet className="w-3.5 h-3.5" />
+              <span>{t.finances.tab_fixed}</span>
+            </button>
+            <button
+              onClick={() => setViewLayout('gros_travaux')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                viewLayout === 'gros_travaux'
+                  ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm font-extrabold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+              title={t.finances.tab_gros_travaux}
+            >
+              <Hammer className="w-3.5 h-3.5" />
+              <span>{t.finances.tab_gros_travaux}</span>
             </button>
             <button
               onClick={() => setViewLayout('expenses')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap ${
                 viewLayout === 'expenses'
                   ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm font-extrabold'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -195,6 +215,18 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
             >
               <Receipt className="w-3.5 h-3.5" />
               <span>{t.finances.tab_expenses} ({expenseNotices.length})</span>
+            </button>
+            <button
+              onClick={() => setViewLayout('split')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap ${
+                viewLayout === 'split'
+                  ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm font-extrabold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+              title={t.finances.tab_split}
+            >
+              <Columns className="w-3.5 h-3.5" />
+              <span>{t.finances.tab_split}</span>
             </button>
           </div>
 
@@ -347,7 +379,23 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
       </div>
 
       {/* Main Content Area based on View Layout */}
-      <div className={`grid gap-6 ${viewLayout === 'split' ? 'grid-cols-1 lg:grid-cols-12' : 'grid-cols-1'}`}>
+      {viewLayout === 'fixed' && (
+        <FixedChargesTab
+          buildingId={selectedBuilding.id}
+          totalUnits={totalUnits}
+          currentMonthlyCharge={monthlyCharge}
+        />
+      )}
+
+      {viewLayout === 'gros_travaux' && (
+        <GrosTravauxTab
+          buildingId={selectedBuilding.id}
+          totalUnits={totalUnits}
+        />
+      )}
+
+      {(viewLayout === 'grid' || viewLayout === 'split' || viewLayout === 'expenses') && (
+        <div className={`grid gap-6 ${viewLayout === 'split' ? 'grid-cols-1 lg:grid-cols-12' : 'grid-cols-1'}`}>
         
         {/* Apartment List & Payment Tracking */}
         {(viewLayout === 'split' || viewLayout === 'grid') && (
@@ -619,6 +667,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
         )}
 
       </div>
+      )}
 
     </div>
   );

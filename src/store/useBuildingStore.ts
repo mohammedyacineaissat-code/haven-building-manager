@@ -9,6 +9,8 @@ import {
   ResidentReport, 
   ResidentProfile, 
   ManagerProfile,
+  FixedCharge,
+  GrosTravauxProject,
   UserRole, 
   IncidentStatus 
 } from '../types/building';
@@ -27,6 +29,85 @@ export const DEFAULT_BUILDINGS: Building[] = [
 ];
 
 export const DEFAULT_BUILDING: Building = DEFAULT_BUILDINGS[0];
+
+export const DEFAULT_FIXED_CHARGES: Record<string, FixedCharge[]> = {
+  '45ab09da-d767-4ae1-bc14-b486cdfe12b4': [
+    {
+      id: 'fc-1',
+      buildingId: '45ab09da-d767-4ae1-bc14-b486cdfe12b4',
+      title: 'Agent de Sécurité & Gardiennage (Poste Jour & Nuit)',
+      category: 'salary',
+      monthlyAmount: 38000,
+      payee: 'Société Gardiennage El Amel',
+      frequency: 'monthly',
+      isPaidThisMonth: true,
+      notes: 'Règlement régulier le 01 de chaque mois'
+    },
+    {
+      id: 'fc-2',
+      buildingId: '45ab09da-d767-4ae1-bc14-b486cdfe12b4',
+      title: 'Nettoyage des Paliers, Halls et Escaliers',
+      category: 'salary',
+      monthlyAmount: 22000,
+      payee: 'Mme Fatima (Agent d\'Entretien)',
+      frequency: 'monthly',
+      isPaidThisMonth: true,
+      notes: '3 passages hebdomadaires + fourniture détergents'
+    },
+    {
+      id: 'fc-3',
+      buildingId: '45ab09da-d767-4ae1-bc14-b486cdfe12b4',
+      title: 'Contrat Maintenance Ascenseurs (Tour A & B)',
+      category: 'contract',
+      monthlyAmount: 18000,
+      payee: 'Schindler Ascenseurs Algérie',
+      frequency: 'monthly',
+      isPaidThisMonth: false,
+      notes: 'Visite mensuelle préventive + astreinte dépannage 24/7'
+    },
+    {
+      id: 'fc-4',
+      buildingId: '45ab09da-d767-4ae1-bc14-b486cdfe12b4',
+      title: 'Sonelgaz - Électricité des Communes & Parking',
+      category: 'utility',
+      monthlyAmount: 14000,
+      payee: 'Sonelgaz Distribution Oran',
+      frequency: 'monthly',
+      isPaidThisMonth: true,
+      notes: 'Compteur parties communes #482910'
+    },
+    {
+      id: 'fc-5',
+      buildingId: '45ab09da-d767-4ae1-bc14-b486cdfe12b4',
+      title: 'Maintenance Surpresseur d\'Eau & Bâche à Eau',
+      category: 'maintenance',
+      monthlyAmount: 6000,
+      payee: 'Hydro Pompes SARL',
+      frequency: 'monthly',
+      isPaidThisMonth: false,
+      notes: 'Contrôle des pressions et étanchéité vanne'
+    }
+  ]
+};
+
+export const DEFAULT_GROS_TRAVAUX: Record<string, GrosTravauxProject[]> = {
+  '45ab09da-d767-4ae1-bc14-b486cdfe12b4': [
+    {
+      id: 'gt-1',
+      buildingId: '45ab09da-d767-4ae1-bc14-b486cdfe12b4',
+      title: 'Réfection & Étanchéité de la Terrasse / Toiture',
+      description: 'Travaux lourds d\'isolation multicouche avec membrane d\'étanchéité bitumineuse pour stopper les infiltrations d\'eau de pluie dans les derniers étages des tours A et B. Voté et validé lors de l\'Assemblée Générale Extraordinaire du 14 Août 2026. Garantie décennale incluse.',
+      totalCost: 420000,
+      perUnitQuota: 10000,
+      deadline: '2026-10-30',
+      status: 'collecting',
+      contractorName: 'Entreprise BTPH El Djazair Étanchéité',
+      contractorPhone: '0555 12 34 56',
+      paidApts: Array.from({ length: 28 }, (_, i) => `Apt ${i + 1}`),
+      createdAt: '2026-08-15'
+    }
+  ]
+};
 
 // Official building contacts
 const STAFF_CONTACTS: StaffContact[] = [
@@ -119,6 +200,26 @@ const getSavedManagerSession = (): ManagerProfile | null => {
   }
 };
 
+const getSavedFixedCharges = (): Record<string, FixedCharge[]> => {
+  if (typeof window === 'undefined') return DEFAULT_FIXED_CHARGES;
+  try {
+    const raw = localStorage.getItem('haven_fixed_charges');
+    return raw ? JSON.parse(raw) : DEFAULT_FIXED_CHARGES;
+  } catch {
+    return DEFAULT_FIXED_CHARGES;
+  }
+};
+
+const getSavedGrosTravaux = (): Record<string, GrosTravauxProject[]> => {
+  if (typeof window === 'undefined') return DEFAULT_GROS_TRAVAUX;
+  try {
+    const raw = localStorage.getItem('haven_gros_travaux');
+    return raw ? JSON.parse(raw) : DEFAULT_GROS_TRAVAUX;
+  } catch {
+    return DEFAULT_GROS_TRAVAUX;
+  }
+};
+
 // Normalize clean strings
 const cleanStr = (val?: string) => (val || '').trim().toLowerCase();
 const cleanDigits = (val?: string) => (val || '').replace(/\D/g, '');
@@ -141,6 +242,8 @@ interface BuildingState {
   contractorContacts: EmergencyContact[];
   residentReports: ResidentReport[];
   finances: Record<string, { monthlyCharge: number, paidApts: string[] }>;
+  fixedCharges: Record<string, FixedCharge[]>;
+  grosTravauxProjects: Record<string, GrosTravauxProject[]>;
   unreadAlertCount: number;
   soundEnabled: boolean;
   isLoading: boolean;
@@ -170,6 +273,19 @@ interface BuildingState {
   updateTicketStatus: (ticketId: string, status: 'pending' | 'in_review' | 'resolved') => Promise<void>;
   addNotice: (notice: any) => Promise<void>;
   updateFinances: (buildingId: string, monthlyCharge: number, paidApts: string[]) => Promise<void>;
+
+  // Operating Budget & Fixed Charges Actions
+  addFixedCharge: (buildingId: string, charge: Omit<FixedCharge, 'id' | 'buildingId'>) => Promise<void>;
+  updateFixedCharge: (buildingId: string, chargeId: string, updates: Partial<FixedCharge>) => Promise<void>;
+  deleteFixedCharge: (buildingId: string, chargeId: string) => Promise<void>;
+  toggleFixedChargeSettled: (buildingId: string, chargeId: string) => Promise<void>;
+
+  // Gros Travaux (Major Works & Exceptional Levies) Actions
+  addGrosTravauxProject: (buildingId: string, project: Omit<GrosTravauxProject, 'id' | 'buildingId' | 'createdAt' | 'paidApts' | 'perUnitQuota'>) => Promise<void>;
+  updateGrosTravauxProject: (buildingId: string, projectId: string, updates: Partial<GrosTravauxProject>) => Promise<void>;
+  toggleGrosTravauxAptPaid: (buildingId: string, projectId: string, aptNumber: string) => Promise<void>;
+  deleteGrosTravauxProject: (buildingId: string, projectId: string) => Promise<void>;
+  publishGrosTravauxNotice: (buildingId: string, projectId: string) => Promise<void>;
 }
 
 const initialSavedProfile = getSavedResidentSession();
@@ -192,6 +308,8 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
   contractorContacts: CONTRACTOR_CONTACTS,
   residentReports: [],
   finances: {},
+  fixedCharges: getSavedFixedCharges(),
+  grosTravauxProjects: getSavedGrosTravaux(),
   unreadAlertCount: 0,
   soundEnabled: true,
   isLoading: false,
@@ -998,5 +1116,173 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
     } catch (err) {
       console.error('DB finance error:', err);
     }
+  },
+
+  addFixedCharge: async (buildingId, chargeData) => {
+    const newCharge: FixedCharge = {
+      id: `fc-${Date.now()}`,
+      buildingId,
+      ...chargeData,
+      updatedAt: new Date().toISOString()
+    };
+    const current = get().fixedCharges[buildingId] || [];
+    const updated = [newCharge, ...current];
+    const newMap = { ...get().fixedCharges, [buildingId]: updated };
+    set({ fixedCharges: newMap });
+    try {
+      localStorage.setItem('haven_fixed_charges', JSON.stringify(newMap));
+    } catch (e) {
+      console.error('Error saving fixed charges:', e);
+    }
+  },
+
+  updateFixedCharge: async (buildingId, chargeId, updates) => {
+    const current = get().fixedCharges[buildingId] || [];
+    const updated = current.map(c => c.id === chargeId ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c);
+    const newMap = { ...get().fixedCharges, [buildingId]: updated };
+    set({ fixedCharges: newMap });
+    try {
+      localStorage.setItem('haven_fixed_charges', JSON.stringify(newMap));
+    } catch (e) {
+      console.error('Error saving fixed charges:', e);
+    }
+  },
+
+  deleteFixedCharge: async (buildingId, chargeId) => {
+    const current = get().fixedCharges[buildingId] || [];
+    const updated = current.filter(c => c.id !== chargeId);
+    const newMap = { ...get().fixedCharges, [buildingId]: updated };
+    set({ fixedCharges: newMap });
+    try {
+      localStorage.setItem('haven_fixed_charges', JSON.stringify(newMap));
+    } catch (e) {
+      console.error('Error saving fixed charges:', e);
+    }
+  },
+
+  toggleFixedChargeSettled: async (buildingId, chargeId) => {
+    const current = get().fixedCharges[buildingId] || [];
+    const updated = current.map(c => c.id === chargeId ? { ...c, isPaidThisMonth: !c.isPaidThisMonth } : c);
+    const newMap = { ...get().fixedCharges, [buildingId]: updated };
+    set({ fixedCharges: newMap });
+    try {
+      localStorage.setItem('haven_fixed_charges', JSON.stringify(newMap));
+    } catch (e) {
+      console.error('Error saving fixed charges:', e);
+    }
+  },
+
+  addGrosTravauxProject: async (buildingId, projectData) => {
+    const bldg = get().buildings.find(b => b.id === buildingId) || get().buildings[0];
+    const totalUnits = bldg?.totalUnits || 30;
+    const perQuota = totalUnits > 0 ? Math.round(projectData.totalCost / totalUnits) : projectData.totalCost;
+
+    const newProject: GrosTravauxProject = {
+      id: `gt-${Date.now()}`,
+      buildingId,
+      ...projectData,
+      perUnitQuota: perQuota,
+      paidApts: [],
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    const current = get().grosTravauxProjects[buildingId] || [];
+    const updated = [newProject, ...current];
+    const newMap = { ...get().grosTravauxProjects, [buildingId]: updated };
+    set({ grosTravauxProjects: newMap });
+    try {
+      localStorage.setItem('haven_gros_travaux', JSON.stringify(newMap));
+    } catch (e) {
+      console.error('Error saving gros travaux projects:', e);
+    }
+  },
+
+  updateGrosTravauxProject: async (buildingId, projectId, updates) => {
+    const current = get().grosTravauxProjects[buildingId] || [];
+    const bldg = get().buildings.find(b => b.id === buildingId) || get().buildings[0];
+    const totalUnits = bldg?.totalUnits || 30;
+
+    const updated = current.map(p => {
+      if (p.id !== projectId) return p;
+      const nextTotalCost = updates.totalCost !== undefined ? updates.totalCost : p.totalCost;
+      const nextQuota = totalUnits > 0 ? Math.round(nextTotalCost / totalUnits) : nextTotalCost;
+      return {
+        ...p,
+        ...updates,
+        perUnitQuota: nextQuota
+      };
+    });
+
+    const newMap = { ...get().grosTravauxProjects, [buildingId]: updated };
+    set({ grosTravauxProjects: newMap });
+    try {
+      localStorage.setItem('haven_gros_travaux', JSON.stringify(newMap));
+    } catch (e) {
+      console.error('Error saving gros travaux projects:', e);
+    }
+  },
+
+  toggleGrosTravauxAptPaid: async (buildingId, projectId, aptNumber) => {
+    const current = get().grosTravauxProjects[buildingId] || [];
+    const cleanNum = aptNumber.trim();
+    const updated = current.map(p => {
+      if (p.id !== projectId) return p;
+      const setApts = new Set(p.paidApts || []);
+      if (setApts.has(cleanNum)) {
+        setApts.delete(cleanNum);
+      } else {
+        setApts.add(cleanNum);
+      }
+      return { ...p, paidApts: Array.from(setApts) };
+    });
+
+    const newMap = { ...get().grosTravauxProjects, [buildingId]: updated };
+    set({ grosTravauxProjects: newMap });
+    try {
+      localStorage.setItem('haven_gros_travaux', JSON.stringify(newMap));
+    } catch (e) {
+      console.error('Error saving gros travaux projects:', e);
+    }
+  },
+
+  deleteGrosTravauxProject: async (buildingId, projectId) => {
+    const current = get().grosTravauxProjects[buildingId] || [];
+    const updated = current.filter(p => p.id !== projectId);
+    const newMap = { ...get().grosTravauxProjects, [buildingId]: updated };
+    set({ grosTravauxProjects: newMap });
+    try {
+      localStorage.setItem('haven_gros_travaux', JSON.stringify(newMap));
+    } catch (e) {
+      console.error('Error saving gros travaux projects:', e);
+    }
+  },
+
+  publishGrosTravauxNotice: async (buildingId, projectId) => {
+    const projects = get().grosTravauxProjects[buildingId] || [];
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+
+    const bldg = get().buildings.find(b => b.id === buildingId) || get().buildings[0];
+    const totalUnits = bldg?.totalUnits || 30;
+
+    const noticeContent = `${project.description}\n\n` +
+      `📌 Coût Total du Projet : ${project.totalCost.toLocaleString()} DA\n` +
+      `🏢 Quote-part par Appartement : ${project.perUnitQuota.toLocaleString()} DA\n` +
+      `📅 Échéance prévue : ${project.deadline}\n` +
+      (project.contractorName ? `👷 Entreprise retenue : ${project.contractorName} (${project.contractorPhone || 'N/A'})\n` : '') +
+      `✅ Progression actuelle : ${project.paidApts.length}/${totalUnits} appartements ont versé leur cotisation.`;
+
+    await get().addNotice({
+      buildingId,
+      title: `🚨 APPEL DE FONDS : ${project.title}`,
+      content: noticeContent,
+      category: 'expense',
+      author: 'Bureau du Syndic (Gros Travaux)',
+      isPinned: true,
+      expenseDetails: {
+        totalAmount: project.totalCost,
+        perResidentAmount: project.perUnitQuota
+      }
+    });
   }
 }));

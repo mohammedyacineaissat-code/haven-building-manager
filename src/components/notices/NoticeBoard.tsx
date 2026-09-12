@@ -85,13 +85,19 @@ export const NoticeBoard: React.FC = () => {
             </p>
 
             {notice.category === 'expense' && notice.expenseDetails && (
-              <div className="mb-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/70 flex items-center justify-between">
+              <div className={`mb-4 p-3.5 rounded-2xl border flex items-center justify-between ${
+                notice.title.includes('APPEL DE FONDS') 
+                  ? 'bg-amber-500/10 dark:bg-amber-950/30 border-amber-500/30' 
+                  : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200/70 dark:border-slate-700/70'
+              }`}>
                 <div>
                   <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                    {t.notices.amount_due}
+                    {notice.title.includes('APPEL DE FONDS') ? (t.gros_travaux?.resident_your_quota || t.notices.amount_due) : t.notices.amount_due}
                   </div>
-                  <div className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                    {notice.expenseDetails.perResidentAmount.toFixed(2)} <span className="text-sm font-semibold">{t.manager.currency}</span>
+                  <div className={`text-xl font-extrabold ${
+                    notice.title.includes('APPEL DE FONDS') ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
+                  }`}>
+                    {notice.expenseDetails.perResidentAmount.toLocaleString()} <span className="text-sm font-semibold">{t.manager.currency}</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -99,7 +105,7 @@ export const NoticeBoard: React.FC = () => {
                     {t.manager.total_cost_label}
                   </div>
                   <div className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                    {notice.expenseDetails.totalAmount.toFixed(2)} {t.manager.currency}
+                    {notice.expenseDetails.totalAmount.toLocaleString()} {t.manager.currency}
                   </div>
                 </div>
               </div>
