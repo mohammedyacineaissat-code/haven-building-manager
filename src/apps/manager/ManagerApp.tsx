@@ -104,6 +104,7 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
         
         {isAddBuildingModalOpen && (
           <AddBuildingModal 
+            isOpen={isAddBuildingModalOpen}
             onClose={() => setIsAddBuildingModalOpen(false)} 
           />
         )}
