@@ -208,6 +208,11 @@ export interface Translations {
     snap_report_btn: string;
     issue_suffix: string;
     by_prefix: string;
+    filter_all: string;
+    filter_pending: string;
+    filter_resolved: string;
+    take_charge: string;
+    mark_resolved: string;
   };
   // Manager Modals & Dispatch Form
   manager_modals: {
@@ -342,6 +347,14 @@ export interface Translations {
     shared_expense_btn: string;
     switch_residence: string;
     add_new_building: string;
+    dark_mode: string;
+    residence_kpi: string;
+    active_outages_kpi: string;
+    incidents_suffix: string;
+    reports_kpi: string;
+    pending_suffix: string;
+    last_invoice_kpi: string;
+    none_label: string;
   };
   // Finances Board
   finances: {
@@ -366,6 +379,35 @@ export interface Translations {
     expense_history: string;
     recent_shared_expenses: string;
     no_expenses_recorded: string;
+    tab_dues: string;
+    tab_expenses: string;
+    tab_split: string;
+    tab_grid: string;
+    group_invoice_btn: string;
+    add_btn: string;
+    search_placeholder: string;
+    filter_all: string;
+    filter_unpaid: string;
+    filter_paid: string;
+    mark_all_paid: string;
+    reset_all: string;
+    reset_confirm: string;
+    not_registered: string;
+    paid_status: string;
+    due_status: string;
+    per_month_unit: string;
+    no_expenses_desc: string;
+    quota_per_apt_label: string;
+    total_expenses_label: string;
+    toggle_instruction: string;
+    apts_displayed: string;
+    total_collected_label: string;
+    collected_short: string;
+    expenses_short: string;
+    net_treasury_desc: string;
+    no_match_filter: string;
+    reset_filter: string;
+    save: string;
   };
   // Residents List
   residents_list: {

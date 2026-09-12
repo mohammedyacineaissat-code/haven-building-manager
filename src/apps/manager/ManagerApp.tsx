@@ -201,7 +201,7 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
         {/* Sidebar Footer: Theme Toggle & Language Switcher */}
         <div className="p-4 border-t border-slate-200/70 dark:border-slate-800/70 space-y-3 bg-slate-50/50 dark:bg-slate-900/30">
           <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Mode Sombre</span>
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{t.manager.dark_mode || 'Mode Sombre'}</span>
             <ThemeToggle />
           </div>
           <LanguageSwitcher compact />
@@ -317,7 +317,7 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
               {/* Desktop KPI Overview Banner */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <div className="p-4 rounded-2xl elevate-card flex flex-col justify-between transition-colors">
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Résidence</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.manager.residence_kpi}</span>
                   <div className="mt-1 flex items-baseline justify-between">
                     <span className="text-xl font-black text-slate-900 dark:text-white">{selectedBuilding.totalUnits}</span>
                     <span className="text-[11px] font-bold text-slate-400">{t.manager.apartments_label}</span>
@@ -325,30 +325,30 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
                 </div>
 
                 <div className="p-4 rounded-2xl elevate-card flex flex-col justify-between transition-colors">
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pannes Actives</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.manager.active_outages_kpi}</span>
                   <div className="mt-1 flex items-baseline justify-between">
                     <span className={`text-xl font-black ${currentBuildingIncidents.length > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                       {currentBuildingIncidents.length}
                     </span>
-                    <span className="text-[11px] font-semibold text-slate-400">incidents</span>
+                    <span className="text-[11px] font-semibold text-slate-400">{t.manager.incidents_suffix}</span>
                   </div>
                 </div>
 
                 <div className="p-4 rounded-2xl elevate-card flex flex-col justify-between transition-colors">
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Signalements</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.manager.reports_kpi}</span>
                   <div className="mt-1 flex items-baseline justify-between">
                     <span className={`text-xl font-black ${pendingTickets.length > 0 ? 'text-amber-500' : 'text-slate-900 dark:text-white'}`}>
                       {pendingTickets.length}
                     </span>
-                    <span className="text-[11px] font-semibold text-slate-400">en attente</span>
+                    <span className="text-[11px] font-semibold text-slate-400">{t.manager.pending_suffix}</span>
                   </div>
                 </div>
 
                 <div className="p-4 rounded-2xl elevate-card flex flex-col justify-between transition-colors">
-                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Dernière Facture</span>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.manager.last_invoice_kpi}</span>
                   <div className="mt-1 flex items-baseline justify-between truncate">
                     <span className="text-base font-black text-emerald-600 dark:text-emerald-400 font-mono truncate">
-                      {latestExpense ? `${Number(latestExpense.expenseDetails?.totalAmount).toLocaleString()} DA` : 'Aucune'}
+                      {latestExpense ? `${Number(latestExpense.expenseDetails?.totalAmount).toLocaleString()} DA` : t.manager.none_label}
                     </span>
                   </div>
                 </div>

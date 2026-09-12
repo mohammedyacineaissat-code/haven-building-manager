@@ -88,19 +88,19 @@ export const ResidentTicketsView: React.FC = () => {
               onClick={() => setStatusFilter('all')}
               className={`px-3 py-1 rounded-lg transition-all ${statusFilter === 'all' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
             >
-              Tous ({buildingTickets.length})
+              {t.tickets.filter_all} ({buildingTickets.length})
             </button>
             <button
               onClick={() => setStatusFilter('pending')}
               className={`px-3 py-1 rounded-lg transition-all ${statusFilter === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
             >
-              En attente ({buildingTickets.filter(b => b.status === 'pending').length})
+              {t.tickets.filter_pending} ({buildingTickets.filter(b => b.status === 'pending').length})
             </button>
             <button
               onClick={() => setStatusFilter('resolved')}
               className={`px-3 py-1 rounded-lg transition-all ${statusFilter === 'resolved' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
             >
-              Résolus ({buildingTickets.filter(b => b.status === 'resolved').length})
+              {t.tickets.filter_resolved} ({buildingTickets.filter(b => b.status === 'resolved').length})
             </button>
           </div>
 
@@ -291,7 +291,7 @@ export const ResidentTicketsView: React.FC = () => {
                       onClick={() => updateTicketStatus(report.id, 'in_review')}
                       className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 hover:bg-blue-100 text-[11px] font-bold transition-colors"
                     >
-                      Prendre en charge
+                      {t.tickets.take_charge}
                     </button>
                   )}
                   <button
@@ -299,7 +299,7 @@ export const ResidentTicketsView: React.FC = () => {
                     onClick={() => updateTicketStatus(report.id, 'resolved')}
                     className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 text-[11px] font-bold transition-colors"
                   >
-                    Marquer Résolu
+                    {t.tickets.mark_resolved}
                   </button>
                 </div>
               )}

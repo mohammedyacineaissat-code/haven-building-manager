@@ -4,16 +4,11 @@ import { useLanguageStore } from '../../store/useLanguageStore';
 import { 
   Wallet, 
   TrendingDown, 
-  TrendingUp, 
   CheckCircle, 
-  Circle, 
   Save, 
   Coins, 
-  FileText, 
   AlertCircle, 
-  Clock, 
-  User,
-  Filter,
+  User, 
   CheckCheck,
   Search,
   Plus,
@@ -21,8 +16,7 @@ import {
   LayoutGrid,
   Columns,
   Receipt,
-  Building,
-  ChevronRight
+  Building
 } from 'lucide-react';
 
 interface FinancesBoardProps {
@@ -49,7 +43,9 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
   const [isEditing, setIsEditing] = useState(false);
   const [filterMode, setFilterMode] = useState<'all' | 'unpaid' | 'paid'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewLayout, setViewLayout] = useState<'split' | 'grid' | 'expenses'>('split');
+  
+  // Default to 'grid' view so all 42 apartments expand gracefully across the screen
+  const [viewLayout, setViewLayout] = useState<'grid' | 'split' | 'expenses'>('grid');
 
   useEffect(() => {
     if (currentFinances) {
@@ -81,7 +77,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
 
   const handleResetAllPayments = async () => {
     if (!selectedBuilding) return;
-    if (!window.confirm('Voulez-vous réinitialiser tous les statuts de paiement à impayé pour ce mois ?')) return;
+    if (!window.confirm(t.finances.reset_confirm)) return;
     setPaidApts(new Set());
     await updateFinances(selectedBuilding.id, monthlyCharge, []);
   };
@@ -127,11 +123,9 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
   const unpaidApts = aptsList.filter(apt => !paidApts.has(apt));
 
   const filteredApts = aptsList.filter(apt => {
-    // Status filter
     if (filterMode === 'paid' && !paidApts.has(apt)) return false;
     if (filterMode === 'unpaid' && paidApts.has(apt)) return false;
     
-    // Search query filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       const matchApt = apt.toLowerCase().includes(q);
@@ -149,61 +143,58 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
       
       {/* Top Header & Actions Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-              <Wallet className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                {t.finances.title}
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
-                {t.finances.subtitle} <span className="font-bold text-slate-700 dark:text-slate-200">{selectedBuilding.name}</span> ({totalUnits} {t.manager.apartments_label})
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold shrink-0">
+            <Wallet className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              {t.finances.title}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+              {t.finances.subtitle} <span className="font-bold text-slate-700 dark:text-slate-200">{selectedBuilding.name}</span> ({totalUnits} {t.manager.apartments_label})
+            </p>
           </div>
         </div>
 
-        {/* Action Controls */}
+        {/* Action Controls & View Switcher */}
         <div className="flex items-center flex-wrap gap-2.5">
-          {/* View Mode Switcher */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200 dark:border-slate-700/60">
-            <button
-              onClick={() => setViewLayout('split')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
-                viewLayout === 'split'
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
-              title="Vue scindée (Appartements + Dépenses)"
-            >
-              <Columns className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Scindée</span>
-            </button>
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-inner">
             <button
               onClick={() => setViewLayout('grid')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                 viewLayout === 'grid'
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                  ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm font-extrabold'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
-              title="Grille complète de tous les appartements"
+              title={t.finances.tab_grid}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Grille Complète</span>
+              <span>{t.finances.tab_grid}</span>
+            </button>
+            <button
+              onClick={() => setViewLayout('split')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                viewLayout === 'split'
+                  ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm font-extrabold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+              title={t.finances.tab_split}
+            >
+              <Columns className="w-3.5 h-3.5" />
+              <span>{t.finances.tab_split}</span>
             </button>
             <button
               onClick={() => setViewLayout('expenses')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
                 viewLayout === 'expenses'
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                  ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm font-extrabold'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
-              title="Historique des dépenses partagées"
+              title={t.finances.tab_expenses}
             >
               <Receipt className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Dépenses ({expenseNotices.length})</span>
+              <span>{t.finances.tab_expenses} ({expenseNotices.length})</span>
             </button>
           </div>
 
@@ -213,14 +204,14 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
               className="py-2.5 px-4 rounded-2xl elevate-button-primary text-xs font-bold flex items-center gap-2 transition-all shadow-sm shadow-emerald-500/20"
             >
               <Plus className="w-4 h-4" />
-              <span>Facture Groupée</span>
+              <span>{t.finances.group_invoice_btn}</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Modern Financial Command Center Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* Financial Command Center Banner (4 KPI cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         
         {/* KPI 1: Collection Rate */}
         <div className="p-5 rounded-3xl elevate-card flex flex-col justify-between transition-all border border-slate-200/80 dark:border-slate-800/80">
@@ -269,13 +260,13 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
               {totalDebt.toLocaleString()} DA
             </span>
             <div className="flex items-center gap-1.5 text-xs text-rose-600/90 dark:text-rose-400/90 mt-1 font-semibold">
-              <AlertCircle className="w-3.5 h-3.5" />
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
               <span>{unpaidApts.length} {t.finances.apartments_late}</span>
             </div>
           </div>
         </div>
 
-        {/* KPI 3: Funds & Net Balance */}
+        {/* KPI 3: Net Cash Balance */}
         <div className="p-5 rounded-3xl elevate-card flex flex-col justify-between transition-all border border-slate-200/80 dark:border-slate-800/80">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{t.finances.remaining_balance}</span>
@@ -288,8 +279,8 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
               {remaining.toLocaleString()} DA
             </span>
             <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-              <span>Collecté: {totalCollected.toLocaleString()} DA</span>
-              <span>Dépenses: {totalExpenses.toLocaleString()} DA</span>
+              <span>{t.finances.collected_short} {totalCollected.toLocaleString()} DA</span>
+              <span>{t.finances.expenses_short} {totalExpenses.toLocaleString()} DA</span>
             </div>
           </div>
         </div>
@@ -319,7 +310,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                     className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 rounded-xl text-white text-xs font-bold flex items-center gap-1 shrink-0 transition-colors shadow-sm"
                   >
                     <Save className="w-3.5 h-3.5" />
-                    <span>OK</span>
+                    <span>{t.finances.save}</span>
                   </button>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -340,7 +331,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                   <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">
                     {monthlyCharge.toLocaleString()} DA
                   </span>
-                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">par appartement / mois</p>
+                  <p className="text-[11px] text-slate-400 font-medium mt-0.5">{t.finances.per_month_unit}</p>
                 </div>
                 <button 
                   onClick={() => setIsEditing(true)} 
@@ -362,32 +353,55 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
         {(viewLayout === 'split' || viewLayout === 'grid') && (
           <div className={`${viewLayout === 'split' ? 'lg:col-span-8' : 'w-full'} elevate-card rounded-3xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden flex flex-col transition-all`}>
             
-            {/* Header & Filter Controls */}
-            <div className="p-5 border-b border-slate-200/80 dark:border-slate-800/80 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-900/30">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                  <Building className="w-5 h-5" />
+            {/* Header: Title & Toolbar */}
+            <div className="p-5 border-b border-slate-200/80 dark:border-slate-800/80 space-y-3 bg-slate-50/50 dark:bg-slate-900/30">
+              
+              {/* Row 1: Title and Actions */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
+                    <Building className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">{t.finances.payment_status}</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                      {paidApts.size} {t.finances.paid_of_total} {totalUnits} {t.manager.apartments_label} • {t.finances.toggle_instruction}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">{t.finances.payment_status}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    {paidApts.size} {t.finances.paid_of_total} {totalUnits} appartements • Cliquez sur un appartement pour basculer son statut
-                  </p>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleMarkAllPaid}
+                    className="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    title={t.finances.mark_all_paid}
+                  >
+                    <CheckCheck className="w-4 h-4" />
+                    <span>{t.finances.mark_all_paid}</span>
+                  </button>
+                  <button
+                    onClick={handleResetAllPayments}
+                    className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                    title={t.finances.reset_all}
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    <span>{t.finances.reset_all}</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Filters & Bulk Tools */}
-              <div className="flex flex-wrap items-center gap-2.5">
+              {/* Row 2: Search Input & Filter Tabs */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
                 
                 {/* Search Bar */}
-                <div className="relative min-w-[180px] sm:w-48">
+                <div className="relative flex-1 max-w-sm">
                   <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Chercher apt, nom..."
-                    className="w-full bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    placeholder={t.finances.search_placeholder}
+                    className="w-full bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs pl-8 pr-7 py-2 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
                   />
                   {searchQuery && (
                     <button 
@@ -399,61 +413,42 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                   )}
                 </div>
 
-                {/* Status Pills */}
-                <div className="flex p-1 rounded-xl bg-slate-200/70 dark:bg-slate-800 text-xs font-bold">
+                {/* Status Tabs */}
+                <div className="flex p-1 rounded-xl bg-slate-200/70 dark:bg-slate-800 text-xs font-bold self-start sm:self-auto shadow-inner">
                   <button
                     onClick={() => setFilterMode('all')}
                     className={`px-3 py-1 rounded-lg transition-all ${filterMode === 'all' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                   >
-                    Tous ({totalUnits})
+                    {t.finances.filter_all} ({totalUnits})
                   </button>
                   <button
                     onClick={() => setFilterMode('unpaid')}
                     className={`px-3 py-1 rounded-lg transition-all ${filterMode === 'unpaid' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                   >
-                    Impayés ({unpaidApts.length})
+                    {t.finances.filter_unpaid} ({unpaidApts.length})
                   </button>
                   <button
                     onClick={() => setFilterMode('paid')}
                     className={`px-3 py-1 rounded-lg transition-all ${filterMode === 'paid' ? 'bg-emerald-500 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
                   >
-                    À jour ({paidApts.size})
-                  </button>
-                </div>
-
-                {/* Batch Actions */}
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={handleMarkAllPaid}
-                    className="p-1.5 sm:px-2.5 sm:py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-bold flex items-center gap-1 transition-colors"
-                    title="Marquer tous les appartements comme payés"
-                  >
-                    <CheckCheck className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Tout payé</span>
-                  </button>
-                  <button
-                    onClick={handleResetAllPayments}
-                    className="p-1.5 sm:px-2.5 sm:py-1 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs font-bold flex items-center gap-1 transition-colors"
-                    title="Réinitialiser les paiements du mois"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Réinitialiser</span>
+                    {t.finances.filter_paid} ({paidApts.size})
                   </button>
                 </div>
 
               </div>
+
             </div>
 
-            {/* Responsive Multi-Column Apartment Grid */}
-            <div className="p-4 sm:p-5 flex-1 overflow-y-auto max-h-[640px] custom-scrollbar">
+            {/* Apartment Grid */}
+            <div className="p-4 sm:p-5">
               {filteredApts.length === 0 ? (
                 <div className="py-16 text-center">
-                  <p className="text-sm font-semibold text-slate-400">Aucun appartement ne correspond à votre filtre.</p>
+                  <p className="text-sm font-semibold text-slate-400">{t.finances.no_match_filter}</p>
                   <button
                     onClick={() => { setFilterMode('all'); setSearchQuery(''); }}
                     className="mt-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
                   >
-                    Réinitialiser les filtres
+                    {t.finances.reset_filter}
                   </button>
                 </div>
               ) : (
@@ -476,7 +471,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                             : 'bg-white dark:bg-slate-800/80 border-slate-200/90 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 shadow-sm'
                         }`}
                       >
-                        {/* Top row: Apt label and Checkbox indicator */}
+                        {/* Top: Apt label and Checkbox indicator */}
                         <div className="flex items-center justify-between gap-2">
                           <span className={`text-sm font-black tracking-tight ${isPaid ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-900 dark:text-white'}`}>
                             {apt}
@@ -501,7 +496,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                             </div>
                           ) : (
                             <span className="text-[11px] text-slate-400 dark:text-slate-500 italic">
-                              Non inscrit
+                              {t.finances.not_registered}
                             </span>
                           )}
                         </div>
@@ -510,11 +505,11 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                         <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-700/50 flex items-center justify-between text-[11px]">
                           {isPaid ? (
                             <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                              Réglé ({monthlyCharge.toLocaleString()} DA)
+                              {t.finances.paid_status} ({monthlyCharge.toLocaleString()} DA)
                             </span>
                           ) : (
                             <span className="font-bold text-rose-600 dark:text-rose-400">
-                              Dû : {monthlyCharge.toLocaleString()} DA
+                              {t.finances.due_status} {monthlyCharge.toLocaleString()} DA
                             </span>
                           )}
                         </div>
@@ -526,10 +521,10 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
             </div>
 
             {/* Grid Footer Summary */}
-            <div className="px-5 py-3 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-              <span>{filteredApts.length} appartements affichés</span>
+            <div className="px-5 py-3.5 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>{filteredApts.length} {t.finances.apts_displayed}</span>
               <span className="font-bold text-slate-700 dark:text-slate-300">
-                Total collecté: {totalCollected.toLocaleString()} DA / {((totalUnits) * monthlyCharge).toLocaleString()} DA
+                {t.finances.total_collected_label} {totalCollected.toLocaleString()} DA / {((totalUnits) * monthlyCharge).toLocaleString()} DA
               </span>
             </div>
 
@@ -552,12 +547,12 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                   className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Ajouter</span>
+                  <span>{t.finances.add_btn}</span>
                 </button>
               )}
             </div>
 
-            <div className="p-0 max-h-[640px] overflow-y-auto custom-scrollbar flex-1">
+            <div className="p-0 flex-1">
               {expenseNotices.length === 0 ? (
                 <div className="p-8 sm:p-12 text-center flex flex-col items-center justify-center">
                   <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
@@ -567,7 +562,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                     {t.finances.no_expenses_recorded}
                   </h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed mb-4">
-                    Les factures groupées (réparation ascenseur, citerne, éclairage des communs) réparties entre les {totalUnits} résidents apparaîtront ici.
+                    {t.finances.no_expenses_desc}
                   </p>
                   {onOpenExpenseModal && (
                     <button
@@ -575,7 +570,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                       className="py-2 px-4 rounded-xl elevate-button-primary text-xs font-bold flex items-center gap-1.5 shadow-sm"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>Publier une Facture Groupée</span>
+                      <span>{t.finances.group_invoice_btn}</span>
                     </button>
                   )}
                 </div>
@@ -599,7 +594,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                       
                       <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/60 text-[11px]">
                         <span className="text-slate-500 dark:text-slate-400">
-                          Quote-part par appartement :
+                          {t.finances.quota_per_apt_label}
                         </span>
                         <span className="font-bold text-emerald-600 dark:text-emerald-400 font-mono">
                           {Number(notice.expenseDetails?.perResidentAmount).toFixed(0)} {t.manager.da_per_unit}
@@ -613,7 +608,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
 
             {expenseNotices.length > 0 && (
               <div className="px-5 py-3.5 border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between text-xs">
-                <span className="font-bold text-slate-500 dark:text-slate-400">Total Dépenses :</span>
+                <span className="font-bold text-slate-500 dark:text-slate-400">{t.finances.total_expenses_label}</span>
                 <span className="font-black text-rose-600 dark:text-rose-400 font-mono text-sm">
                   {totalExpenses.toLocaleString()} DA
                 </span>
