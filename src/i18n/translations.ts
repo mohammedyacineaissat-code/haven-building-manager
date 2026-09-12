@@ -326,6 +326,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       bulletin_board_desc: 'Publish official notices, meetings, or co-ownership invoices for',
       write_notice_btn: 'Write a Notice',
       shared_expense_btn: 'Shared Expense',
+      switch_residence: 'Switch Residence',
+      add_new_building: 'Add New Residence',
     },
     finances: {
       title: 'Treasury & Charges',
@@ -711,6 +713,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       bulletin_board_desc: 'Publiez des avis officiels, convocations ou factures de copropriété pour',
       write_notice_btn: 'Rédiger un Avis',
       shared_expense_btn: 'Dépense Partagée',
+      switch_residence: 'Changer de Résidence',
+      add_new_building: 'Ajouter une Résidence',
     },
     finances: {
       title: 'Trésorerie & Charges',
@@ -1096,6 +1100,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
       bulletin_board_desc: 'نشر إعلانات رسمية أو اجتماعات أو فواتير الملكية المشتركة لـ',
       write_notice_btn: 'كتابة إشعار',
       shared_expense_btn: 'مصروف مشترك',
+      switch_residence: 'تغيير الإقامة',
+      add_new_building: 'إضافة إقامة جديدة',
     },
     finances: {
       title: 'الخزينة والرسوم',

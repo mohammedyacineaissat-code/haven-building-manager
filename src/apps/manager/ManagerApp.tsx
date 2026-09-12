@@ -30,7 +30,8 @@ import {
   Wifi,
   Battery,
   AlertTriangle,
-  LayoutDashboard
+  LayoutDashboard,
+  Trash2
 } from 'lucide-react';
 
 type ManagerTab = 'dashboard' | 'residents' | 'notices' | 'finances' | 'vendors';
@@ -57,12 +58,58 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
     buildings, 
     activeBuildingId, 
     setActiveBuilding, 
+    removeBuilding,
     activeIncidents, 
     residentReports,
     notices
   } = useBuildingStore();
 
   const { t } = useLanguageStore();
+
+  if (buildings.length === 0) {
+    return (
+      <div className={`w-full h-full bg-elevate-bg dark:bg-elevate-bg-dark flex flex-col font-sans transition-colors duration-300 ${standalone ? 'min-h-[840px]' : 'min-h-[780px]'}`}>
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in zoom-in-95 duration-300">
+          <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-blue-200/50 dark:border-blue-800/30 mx-auto">
+            <LayoutDashboard className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight">No Residences Managed</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-xs mx-auto leading-relaxed">
+            You currently have no residences in your portfolio. Add a new building to start managing outages, notices, and residents.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-sm mx-auto">
+            <button
+              onClick={() => {
+                useBuildingStore.getState().addBuilding({
+                  name: 'Majestic 14 (Oran)',
+                  address: 'Oran',
+                  totalUnits: 42,
+                  towers: ['Tour A', 'Tour B'],
+                  status: 'operational',
+                });
+              }}
+              className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-6 py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2.5 transition-all active:scale-95"
+            >
+              <span>Restore Demo</span>
+            </button>
+            <button
+              onClick={() => setIsAddBuildingModalOpen(true)}
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2.5 shadow-lg shadow-blue-500/25 transition-all active:scale-95"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Add New Residence</span>
+            </button>
+          </div>
+        </div>
+        
+        {isAddBuildingModalOpen && (
+          <AddBuildingModal 
+            onClose={() => setIsAddBuildingModalOpen(false)} 
+          />
+        )}
+      </div>
+    );
+  }
 
   const selectedBuilding = buildings.find(b => b.id === activeBuildingId) || buildings[0] || DEFAULT_BUILDING;
 
@@ -89,29 +136,84 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
   return (
     <div className={`w-full h-full bg-elevate-bg dark:bg-elevate-bg-dark text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-300 ${standalone ? 'min-h-[840px]' : 'min-h-[780px]'}`}>
       
-      {/* Standalone Native Mobile Status Bar (Android Experience) */}
-      {standalone && (
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-6 pt-2 pb-1 border-b border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between text-[11px] font-medium text-slate-400 select-none">
-          <span>09:41</span>
-          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-            <Wifi className="w-3.5 h-3.5" />
-            <span className="text-[10px] font-bold">5G</span>
-            <Battery className="w-3.5 h-3.5" />
-          </div>
-        </div>
-      )}
-
       {/* Manager Header & Building Context */}
       <div className="bg-white/85 dark:bg-[#0D1524]/85 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 px-5 sm:px-8 py-4 transition-colors duration-300 z-10">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-2">
+          <div className="flex-1 min-w-0 relative">
+            <button 
+              onClick={() => setIsBuildingSelectorOpen(!isBuildingSelectorOpen)}
+              className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
               <span className="truncate">{selectedBuilding.name}</span>
-            </h1>
+              <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isBuildingSelectorOpen ? 'rotate-180' : ''}`} />
+            </button>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5 font-medium">
               <MapPin className="w-3.5 h-3.5 text-emerald-500" />
               <span className="truncate">{selectedBuilding.address}</span>
             </p>
+
+            {/* Building Selector Dropdown */}
+            {isBuildingSelectorOpen && (
+              <>
+                {/* Overlay to close dropdown when clicking outside */}
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setIsBuildingSelectorOpen(false)}
+                />
+                <div className="absolute top-full left-0 mt-3 w-72 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 z-50 animate-in fade-in zoom-in-95 duration-100 origin-top-left">
+                  <div className="px-4 pb-2 mb-2 border-b border-slate-100 dark:border-slate-700/80">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t.manager.switch_residence || 'Switch Residence'}</span>
+                  </div>
+                  
+                  <div className="max-h-60 overflow-y-auto">
+                    {buildings.map(b => (
+                      <div key={b.id} className="flex items-center group hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-50 dark:border-slate-700/30 last:border-0">
+                        <button
+                          onClick={() => {
+                            setActiveBuilding(b.id);
+                            setIsBuildingSelectorOpen(false);
+                          }}
+                          className={`flex-1 text-left px-4 py-2.5 text-sm flex items-center justify-between ${activeBuildingId === b.id ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}
+                        >
+                          <div className="flex flex-col truncate pr-2">
+                            <span className="truncate">{b.name}</span>
+                            <span className="text-[10px] font-normal opacity-70 truncate">{b.address}</span>
+                          </div>
+                          {activeBuildingId === b.id && <CheckCircle className="w-4 h-4 shrink-0" />}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`Are you sure you want to remove ${b.name}?`)) {
+                              removeBuilding(b.id);
+                            }
+                          }}
+                          className="px-4 py-2.5 text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                          title="Remove residence"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="px-3 pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/80">
+                    <button
+                      onClick={() => {
+                        setIsBuildingSelectorOpen(false);
+                        setIsAddBuildingModalOpen(true);
+                      }}
+                      className="w-full text-left px-3 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl flex items-center gap-2 transition-colors"
+                    >
+                      <div className="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">
+                        <Plus className="w-3.5 h-3.5" />
+                      </div>
+                      <span>{t.manager.add_new_building || 'Add New Residence'}</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="shrink-0 flex items-center gap-1.5 sm:gap-2">
@@ -256,9 +358,8 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
                   <button
                     onClick={handlePublishGroupedExpense}
                     disabled={!calcAmount || !calcTitle}
-                    className="w-full elevate-button-primary py-3 rounded-2xl text-xs font-bold mt-4 disabled:opacity-40"
+                    className="w-full elevate-button-primary py-3 rounded-2xl text-xs font-bold mt-4 disabled:opacity-40 flex justify-center items-center"
                   >
-                    <Receipt className="w-3.5 h-3.5 mr-1.5" />
                     <span>{t.manager.publish_grouped_invoice}</span>
                   </button>
                 </div>

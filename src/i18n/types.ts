@@ -340,6 +340,8 @@ export interface Translations {
     bulletin_board_desc: string;
     write_notice_btn: string;
     shared_expense_btn: string;
+    switch_residence: string;
+    add_new_building: string;
   };
   // Finances Board
   finances: {

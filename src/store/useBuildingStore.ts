@@ -134,6 +134,7 @@ interface BuildingState {
   
   // Database Actions
   addBuilding: (buildingData: Omit<Building, 'id'>) => Promise<void>;
+  removeBuilding: (buildingId: string) => Promise<void>;
   broadcastIncident: (newIncident: any) => Promise<void>;
   updateIncidentStatus: (incidentId: string, status: IncidentStatus, note?: string) => Promise<void>;
   addTimelineNote: (incidentId: string, note: string) => Promise<void>;
@@ -587,6 +588,26 @@ export const useBuildingStore = create<BuildingState>((set, get) => ({
       });
     } catch (err) {
       console.debug('DB insert error:', err);
+    }
+  },
+
+  removeBuilding: async (buildingId) => {
+    set(state => {
+      const remainingBuildings = state.buildings.filter(b => b.id !== buildingId);
+      const nextActiveId = state.activeBuildingId === buildingId 
+        ? (remainingBuildings[0]?.id || '') 
+        : state.activeBuildingId;
+        
+      return {
+        buildings: remainingBuildings,
+        activeBuildingId: nextActiveId
+      };
+    });
+
+    try {
+      await supabase.from('buildings').delete().eq('id', buildingId);
+    } catch (err) {
+      console.debug('DB delete error:', err);
     }
   },
 
