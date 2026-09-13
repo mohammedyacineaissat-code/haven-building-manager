@@ -17,7 +17,8 @@ import {
   Columns,
   Receipt,
   Building,
-  Hammer
+  Hammer,
+  Trash2
 } from 'lucide-react';
 import { FixedChargesTab } from './FixedChargesTab';
 import { GrosTravauxTab } from './GrosTravauxTab';
@@ -34,6 +35,7 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
   const finances = useBuildingStore(state => state.finances);
   const updateFinances = useBuildingStore(state => state.updateFinances);
   const fixedCharges = useBuildingStore(state => state.fixedCharges);
+  const deleteNotice = useBuildingStore(state => state.deleteNotice);
 
   const selectedBuilding = buildings.find(b => b.id === activeBuildingId) || buildings[0];
   const notices = allNotices.filter(n => !n.buildingId || n.buildingId === (selectedBuilding?.id || activeBuildingId));
@@ -635,9 +637,22 @@ export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal
                             {new Date(notice.date).toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })}
                           </span>
                         </div>
-                        <span className="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 px-2.5 py-1 rounded-xl shrink-0 font-mono">
-                          -{Number(notice.expenseDetails?.totalAmount).toLocaleString()} DA
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-xs font-black text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 px-2.5 py-1 rounded-xl font-mono">
+                            -{Number(notice.expenseDetails?.totalAmount).toLocaleString()} DA
+                          </span>
+                          <button
+                            onClick={() => {
+                              if (window.confirm('Are you sure you want to delete this expense?')) {
+                                deleteNotice(notice.id);
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
+                            title={t.common.delete || 'Delete'}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       
                       <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/60 text-[11px]">

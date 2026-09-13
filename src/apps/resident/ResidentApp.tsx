@@ -6,6 +6,7 @@ import { NoticeBoard } from '../../components/notices/NoticeBoard';
 import { EmergencyDirectory } from '../../components/directory/EmergencyDirectory';
 import { ResidentLoginScreen } from './ResidentLoginScreen';
 import { LanguageSwitcher } from '../../components/layout/LanguageSwitcher';
+import { ResidentTicketsView } from '../../components/reports/ResidentTicketsView';
 import confetti from 'canvas-confetti';
 import { 
   AlertCircle, 
@@ -26,8 +27,7 @@ import {
   Check,
   Camera
 } from 'lucide-react';
-
-type ResidentTab = 'outages' | 'notices' | 'management';
+type ResidentTab = 'outages' | 'notices' | 'reports' | 'management';
 
 interface ResidentAppProps {
   standalone?: boolean;
@@ -289,7 +289,7 @@ export const ResidentApp: React.FC<ResidentAppProps> = ({ standalone = false }) 
                           <div className="flex items-center justify-between mb-1">
                             <span className="font-semibold text-slate-900 dark:text-white">{incident.title}</span>
                             <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 px-2.5 py-0.5 rounded-full">
-                              RÉSOLU
+                              {t.common.resolved.toUpperCase()}
                             </span>
                           </div>
                           <p className="text-slate-500 dark:text-slate-400 text-[11px] mb-2">{incident.description}</p>
@@ -305,6 +305,9 @@ export const ResidentApp: React.FC<ResidentAppProps> = ({ standalone = false }) 
 
         {/* NOTICES TAB */}
         {activeTab === 'notices' && <NoticeBoard />}
+
+        {/* REPORTS TAB */}
+        {activeTab === 'reports' && <ResidentTicketsView />}
 
         {/* MANAGEMENT TAB */}
         {activeTab === 'management' && <EmergencyDirectory />}
@@ -344,6 +347,18 @@ export const ResidentApp: React.FC<ResidentAppProps> = ({ standalone = false }) 
           >
             <Bell className="w-5 h-5 mb-0.5" />
             <span className="text-[10px]">{t.resident.tab_notices}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('reports')}
+            className={`flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all duration-200 outline-none ${
+              activeTab === 'reports' 
+                ? 'bg-emerald-500/15 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold' 
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <MessageSquare className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px]">{t.resident.tab_reports}</span>
           </button>
 
           <button

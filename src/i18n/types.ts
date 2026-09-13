@@ -31,6 +31,7 @@ export interface Translations {
     connected: string;
     change: string;
     cancel: string;
+    delete: string;
     confirm: string;
     save: string;
     close: string;
@@ -355,6 +356,12 @@ export interface Translations {
     pending_suffix: string;
     last_invoice_kpi: string;
     none_label: string;
+    no_residences_title: string;
+    no_residences_desc: string;
+    restore_demo: string;
+    confirm_remove: string;
+    urgencies: string;
+    vendors_subtitle: string;
   };
   // Finances Board
   finances: {

@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.haven.resident',
-  appName: 'Haven Résidents',
+  appId: 'com.haven.manager',
+  appName: 'Haven Syndic',
   webDir: 'dist',
   server: {
     androidScheme: 'https',
@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: true,
     captureInput: true,
-    backgroundColor: '#F8FAFC'
+    backgroundColor: '#0F172A'
   }
 };
 

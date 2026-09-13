@@ -38,7 +38,8 @@ import {
   Trash2,
   Building2,
   Phone,
-  LogOut
+  LogOut,
+  RotateCcw
 } from 'lucide-react';
 import { ManagerAuthScreen } from './ManagerAuthScreen';
 
@@ -87,11 +88,18 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
           <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-blue-200/50 dark:border-blue-800/30 mx-auto">
             <LayoutDashboard className="w-10 h-10 text-blue-600 dark:text-blue-400" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight">No Residences Managed</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-xs mx-auto leading-relaxed">
-            You currently have no residences in your portfolio. Add a new building to start managing outages, notices, and residents.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-sm mx-auto">
+          <div className="text-center bg-white/60 dark:bg-slate-900/60 backdrop-blur-md p-8 sm:p-12 rounded-3xl border border-slate-200/50 dark:border-slate-800/50 shadow-sm">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight">{t.manager.no_residences_title}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-8 leading-relaxed">
+              {t.manager.no_residences_desc}
+            </p>
+            <button 
+              onClick={() => setIsAddBuildingModalOpen(true)}
+              className="mt-12 mx-auto flex items-center gap-2 py-3 px-6 rounded-full elevate-button-primary shadow-sm hover:scale-105 active:scale-95 transition-all"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{t.manager.add_new_building}</span>
+            </button>
             <button
               onClick={() => {
                 useBuildingStore.getState().addBuilding({
@@ -101,17 +109,12 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
                   towers: ['Tour A', 'Tour B'],
                   status: 'operational',
                 });
+                setIsAddBuildingModalOpen(false);
               }}
-              className="w-full sm:w-auto bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-6 py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2.5 transition-all active:scale-95"
+              className="mt-6 text-xs font-bold text-slate-400 hover:text-emerald-500 transition-colors flex items-center justify-center gap-1.5 mx-auto"
             >
-              <span>Restore Demo</span>
-            </button>
-            <button
-              onClick={() => setIsAddBuildingModalOpen(true)}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2.5 shadow-lg shadow-blue-500/25 transition-all active:scale-95"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Add New Residence</span>
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>{t.manager.restore_demo}</span>
             </button>
           </div>
         </div>
@@ -286,7 +289,7 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (window.confirm(`Are you sure you want to remove ${b.name}?`)) {
+                              if (window.confirm(t.manager.confirm_remove.replace('{name}', b.name))) {
                                 removeBuilding(b.id);
                               }
                             }}
@@ -301,16 +304,13 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
 
                     <div className="px-3 pt-2 mt-2 border-t border-slate-100 dark:border-slate-700/80">
                       <button
-                        onClick={() => {
-                          setIsBuildingSelectorOpen(false);
-                          setIsAddBuildingModalOpen(true);
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl flex items-center gap-2 transition-colors"
+                        onClick={() => setIsAddBuildingModalOpen(true)}
+                        className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors group outline-none"
                       >
-                        <div className="w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center shrink-0">
-                          <Plus className="w-3.5 h-3.5" />
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-center group-hover:scale-105 group-active:scale-95 transition-transform shrink-0">
+                          <Plus className="w-5 h-5 text-slate-400 group-hover:text-emerald-500" />
                         </div>
-                        <span>{t.manager.add_new_building || 'Add New Residence'}</span>
+                        <span className="text-sm font-semibold">{t.manager.add_new_building}</span>
                       </button>
                     </div>
                   </div>
@@ -606,9 +606,9 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-5 rounded-3xl elevate-card transition-colors">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">{t.manager.vendors_tab} & Urgences</h3>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">{t.manager.vendors_tab} {t.manager.urgencies}</h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Coordonnées officielles des services d'urgence et prestataires techniques
+                    {t.manager.vendors_subtitle}
                   </p>
                 </div>
               </div>
@@ -627,6 +627,7 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
               { id: 'notices' as ManagerTab, label: t.manager.bulletins_tab, icon: Bell },
               { id: 'residents' as ManagerTab, label: t.residents_list.title, icon: Users },
               { id: 'finances' as ManagerTab, label: t.manager.finances_tab, icon: Wallet },
+              { id: 'vendors' as ManagerTab, label: t.manager.vendors_tab, icon: Wrench },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;

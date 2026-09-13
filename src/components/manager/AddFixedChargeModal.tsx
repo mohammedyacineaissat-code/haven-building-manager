@@ -13,7 +13,8 @@ import {
   Building2,
   Calendar,
   Save,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 
 interface AddFixedChargeModalProps {
@@ -29,7 +30,7 @@ export const AddFixedChargeModal: React.FC<AddFixedChargeModalProps> = ({
   buildingId,
   initialCharge
 }) => {
-  const { addFixedCharge, updateFixedCharge } = useBuildingStore();
+  const { addFixedCharge, updateFixedCharge, deleteFixedCharge } = useBuildingStore();
   const { t, isRtl } = useLanguageStore();
 
   const [title, setTitle] = useState('');
@@ -256,22 +257,41 @@ export const AddFixedChargeModal: React.FC<AddFixedChargeModalProps> = ({
             />
           </div>
 
-          {/* Submit Button */}
-          <div className="pt-2 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              {t.common.cancel}
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold shadow-lg shadow-emerald-500/25 flex items-center gap-2 transition-all"
-            >
-              <Save className="w-4 h-4" />
-              <span>{t.fixed_charges.save_btn}</span>
-            </button>
+          {/* Submit / Delete Actions */}
+          <div className="pt-2 flex items-center justify-between">
+            <div>
+              {initialCharge && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm(t.fixed_charges.delete_confirm || 'Delete this charge?')) {
+                      deleteFixedCharge(buildingId, initialCharge.id);
+                      onClose();
+                    }
+                  }}
+                  className="px-4 py-2.5 rounded-2xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>{t.common.delete || 'Supprimer'}</span>
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                {t.common.cancel}
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-bold shadow-lg shadow-emerald-500/25 flex items-center gap-2 transition-all"
+              >
+                <Save className="w-4 h-4" />
+                <span>{t.fixed_charges.save_btn}</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>
