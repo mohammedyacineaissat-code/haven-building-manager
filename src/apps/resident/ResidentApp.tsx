@@ -96,17 +96,6 @@ export const ResidentApp: React.FC<ResidentAppProps> = ({ standalone = false }) 
   return (
     <div className={`w-full ${standalone ? 'max-w-md min-h-screen sm:min-h-[840px]' : 'w-full min-h-[780px]'} mx-auto bg-elevate-bg dark:bg-elevate-bg-dark text-slate-900 dark:text-slate-100 sm:rounded-3xl overflow-hidden flex flex-col relative font-sans border-0 transition-colors duration-300`}>
       
-      {/* Standalone Native Mobile Status Bar (Android Experience) */}
-      {standalone && (
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-6 pt-2 pb-1 border-b border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between text-[11px] font-medium text-slate-400 select-none">
-          <span>09:41</span>
-          <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-            <Wifi className="w-3.5 h-3.5" />
-            <span className="text-[10px] font-bold">5G</span>
-            <Battery className="w-3.5 h-3.5" />
-          </div>
-        </div>
-      )}
 
       {/* Resident Header with Name, Building & Quick Controls */}
         <div className="flex items-center justify-between bg-white/85 dark:bg-[#0D1524]/85 backdrop-blur-xl border-b border-slate-200/70 dark:border-slate-800/70 px-5 pt-4 pb-3.5 sticky top-0 z-20 transition-colors duration-300">

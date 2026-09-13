@@ -23,6 +23,14 @@ export function App() {
     initializeData();
     initTheme();
 
+    // Auto-sync data when app comes back to foreground
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        initializeData();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     // Native App Initialization (Capacitor)
     if (Capacitor.isNativePlatform()) {
       const initNativeApp = async () => {
@@ -39,6 +47,10 @@ export function App() {
       };
       initNativeApp();
     }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [initializeData, initTheme]);
 
   // If building a specific target via Vite build (for Capacitor APKs)
