@@ -41,6 +41,8 @@ export const AddAnnouncementModal: React.FC<AddAnnouncementModalProps> = ({
 
   if (!isOpen) return null;
 
+  console.log('AddAnnouncementModal rendering!', { isOpen, title, category });
+
   const categories: { id: NoticeCategory; label: string; icon: React.FC<{ className?: string }>; color: string }[] = [
     { id: 'info', label: t.announcement_modal.cat_info, icon: Info, color: 'blue' },
     { id: 'maintenance', label: t.announcement_modal.cat_maintenance, icon: Wrench, color: 'amber' },

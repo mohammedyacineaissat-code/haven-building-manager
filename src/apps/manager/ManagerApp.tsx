@@ -358,7 +358,10 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
                 </button>
               </div>
               <button
-                onClick={() => setIsAnnouncementModalOpen(true)}
+                onClick={() => {
+                  console.log('Bell button clicked! Setting isAnnouncementModalOpen to true.');
+                  setIsAnnouncementModalOpen(true);
+                }}
                 className="py-2.5 px-3.5 rounded-2xl elevate-button-primary text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
               >
                 <Bell className="w-3.5 h-3.5" />
@@ -615,7 +618,10 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setIsAnnouncementModalOpen(true)}
+                    onClick={() => {
+                      console.log('Notice board plus button clicked! Setting isAnnouncementModalOpen to true.');
+                      setIsAnnouncementModalOpen(true);
+                    }}
                     className="py-2.5 px-4 elevate-button-primary text-xs flex items-center gap-1.5 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
