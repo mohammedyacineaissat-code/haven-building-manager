@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useBuildingStore } from '../../store/useBuildingStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useFinanceStore } from '../../store/useFinanceStore';
+import { useNoticeStore } from '../../store/useNoticeStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { 
   Wallet, 
@@ -30,12 +33,12 @@ interface FinancesBoardProps {
 export const FinancesBoard: React.FC<FinancesBoardProps> = ({ onOpenExpenseModal }) => {
   const activeBuildingId = useBuildingStore(state => state.activeBuildingId);
   const buildings = useBuildingStore(state => state.buildings);
-  const allNotices = useBuildingStore(state => state.notices);
-  const registeredAccounts = useBuildingStore(state => state.registeredAccounts);
-  const finances = useBuildingStore(state => state.finances);
-  const updateFinances = useBuildingStore(state => state.updateFinances);
-  const fixedCharges = useBuildingStore(state => state.fixedCharges);
-  const deleteNotice = useBuildingStore(state => state.deleteNotice);
+  const allNotices = useNoticeStore(state => state.notices);
+  const registeredAccounts = useAuthStore(state => state.registeredAccounts);
+  const finances = useFinanceStore(state => state.finances);
+  const updateFinances = useFinanceStore(state => state.updateFinances);
+  const fixedCharges = useFinanceStore(state => state.fixedCharges);
+  const deleteNotice = useNoticeStore(state => state.deleteNotice);
 
   const selectedBuilding = buildings.find(b => b.id === activeBuildingId) || buildings[0];
   const notices = allNotices.filter(n => !n.buildingId || n.buildingId === (selectedBuilding?.id || activeBuildingId));

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useBuildingStore } from '../../store/useBuildingStore';
+import { useFinanceStore } from '../../store/useFinanceStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { FixedCharge, FixedChargeCategory } from '../../types/building';
 import { AddFixedChargeModal } from './AddFixedChargeModal';
@@ -33,7 +33,7 @@ export const FixedChargesTab: React.FC<FixedChargesTabProps> = ({
   totalUnits,
   currentMonthlyCharge
 }) => {
-  const { fixedCharges, toggleFixedChargeSettled, deleteFixedCharge } = useBuildingStore();
+  const { fixedCharges, toggleFixedChargeSettled, deleteFixedCharge } = useFinanceStore();
   const { t, isRtl } = useLanguageStore();
 
   const [filterCategory, setFilterCategory] = useState<FixedChargeCategory | 'all'>('all');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calculator, Receipt, AlertCircle } from 'lucide-react';
 import { useBuildingStore } from '../../store/useBuildingStore';
+import { useNoticeStore } from '../../store/useNoticeStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 
 interface AddExpenseModalProps {
@@ -16,7 +17,8 @@ export const AddExpenseModal: React.FC<AddExpenseModalProps> = ({
   defaultTitle = '',
   defaultAmount = ''
 }) => {
-  const { addNotice, buildings, activeBuildingId } = useBuildingStore();
+  const { buildings, activeBuildingId } = useBuildingStore();
+  const { addNotice } = useNoticeStore();
   const { t } = useLanguageStore();
   
   const [expenseTitle, setExpenseTitle] = useState(defaultTitle);

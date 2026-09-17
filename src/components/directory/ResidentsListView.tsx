@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useBuildingStore } from '../../store/useBuildingStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { Search, Phone, Home, User, ShieldCheck } from 'lucide-react';
 
 export const ResidentsListView = () => {
-  const { registeredAccounts, activeBuildingId } = useBuildingStore();
+  const { registeredAccounts } = useAuthStore();
+  const { activeBuildingId } = useBuildingStore();
   const { t } = useLanguageStore();
   const [search, setSearch] = useState('');
 

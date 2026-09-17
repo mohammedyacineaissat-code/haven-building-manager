@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useBuildingStore } from '../../store/useBuildingStore';
+import { useFinanceStore } from '../../store/useFinanceStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { GrosTravauxProject, GrosTravauxStatus } from '../../types/building';
 import { 
@@ -31,7 +31,7 @@ export const AddGrosTravauxModal: React.FC<AddGrosTravauxModalProps> = ({
   totalUnits,
   initialProject
 }) => {
-  const { addGrosTravauxProject, updateGrosTravauxProject, deleteGrosTravauxProject } = useBuildingStore();
+  const { addGrosTravauxProject, updateGrosTravauxProject, deleteGrosTravauxProject } = useFinanceStore();
   const { t, isRtl } = useLanguageStore();
 
   const [title, setTitle] = useState('');
@@ -94,7 +94,7 @@ export const AddGrosTravauxModal: React.FC<AddGrosTravauxModalProps> = ({
         deadline: deadline || new Date().toISOString().split('T')[0],
         contractorName: contractorName.trim() || undefined,
         contractorPhone: contractorPhone.trim() || undefined,
-      });
+      }, totalUnits);
     } else {
       await addGrosTravauxProject(buildingId, {
         title: title.trim(),
@@ -104,7 +104,7 @@ export const AddGrosTravauxModal: React.FC<AddGrosTravauxModalProps> = ({
         deadline: deadline || new Date().toISOString().split('T')[0],
         contractorName: contractorName.trim() || undefined,
         contractorPhone: contractorPhone.trim() || undefined,
-      });
+      }, totalUnits);
     }
 
     onClose();

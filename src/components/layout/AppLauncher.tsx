@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Smartphone, Building2, Package } from 'lucide-react';
-import { useBuildingStore } from '../../store/useBuildingStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
@@ -21,7 +21,7 @@ export const AppLauncher: React.FC<AppLauncherProps> = ({
   isStandaloneMode,
   onToggleStandalone
 }) => {
-  const { setRole, currentRole } = useBuildingStore();
+  const { setRole, currentRole } = useAuthStore();
   const { t } = useLanguageStore();
   const [isPackagerOpen, setIsPackagerOpen] = useState(false);
 

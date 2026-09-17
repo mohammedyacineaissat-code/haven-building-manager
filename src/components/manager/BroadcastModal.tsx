@@ -15,6 +15,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { useBuildingStore } from '../../store/useBuildingStore';
+import { useIncidentStore } from '../../store/useIncidentStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { IncidentCategory, SeverityLevel } from '../../types/building';
 
@@ -29,7 +30,8 @@ export const BroadcastModal: React.FC<BroadcastModalProps> = ({
   onClose,
   initialCategory = 'water'
 }) => {
-  const { broadcastIncident, activeBuildingId, buildings } = useBuildingStore();
+  const { activeBuildingId, buildings } = useBuildingStore();
+  const { broadcastIncident } = useIncidentStore();
   const { t } = useLanguageStore();
 
   const [category, setCategory] = useState<IncidentCategory>(initialCategory);

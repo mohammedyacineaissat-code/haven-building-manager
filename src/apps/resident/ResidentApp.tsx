@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { useBuildingStore, DEFAULT_BUILDING } from '../../store/useBuildingStore';
+import { useBuildingStore } from '../../store/useBuildingStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useIncidentStore } from '../../store/useIncidentStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { IncidentCard } from '../../components/outages/IncidentCard';
 import { NoticeBoard } from '../../components/notices/NoticeBoard';
@@ -7,6 +9,7 @@ import { EmergencyDirectory } from '../../components/directory/EmergencyDirector
 import { ResidentLoginScreen } from './ResidentLoginScreen';
 import { LanguageSwitcher } from '../../components/layout/LanguageSwitcher';
 import { ResidentTicketsView } from '../../components/reports/ResidentTicketsView';
+import { MyPaymentStatus } from '../../components/resident/MyPaymentStatus';
 import confetti from 'canvas-confetti';
 import { 
   AlertCircle, 
@@ -39,10 +42,12 @@ export const ResidentApp: React.FC<ResidentAppProps> = ({ standalone = false }) 
   const [showResolvedHistory, setShowResolvedHistory] = useState(false);
   const [hasConfirmedWaterQuick, setHasConfirmedWaterQuick] = useState(false);
 
+  const { buildings } = useBuildingStore();
   const { 
-    buildings, 
     residentProfile, 
     logoutResident, 
+  } = useAuthStore();
+  const {
     activeIncidents, 
     resolvedIncidents, 
     unreadAlertCount, 
@@ -50,7 +55,7 @@ export const ResidentApp: React.FC<ResidentAppProps> = ({ standalone = false }) 
     soundEnabled, 
     toggleSound, 
     confirmRestoration
-  } = useBuildingStore();
+  } = useIncidentStore();
 
   const { t, isRtl } = useLanguageStore();
 
@@ -58,7 +63,8 @@ export const ResidentApp: React.FC<ResidentAppProps> = ({ standalone = false }) 
     return <ResidentLoginScreen isStandalone={standalone} />;
   }
 
-  const myBuilding = buildings.find(b => b.id === residentProfile.buildingId) || buildings[0] || DEFAULT_BUILDING;
+  const myBuilding = buildings.find(b => b.id === residentProfile.buildingId) || buildings[0];
+  if (!myBuilding) return null;
 
   // Incidents specific to this resident's building
   const buildingActiveIncidents = activeIncidents.filter(i => !i.buildingId || i.buildingId === myBuilding.id);
@@ -299,7 +305,12 @@ export const ResidentApp: React.FC<ResidentAppProps> = ({ standalone = false }) 
         {activeTab === 'reports' && <ResidentTicketsView />}
 
         {/* MANAGEMENT TAB */}
-        {activeTab === 'management' && <EmergencyDirectory />}
+        {activeTab === 'management' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <MyPaymentStatus />
+            <EmergencyDirectory />
+          </div>
+        )}
 
       </main>
 

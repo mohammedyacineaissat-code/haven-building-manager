@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useBuildingStore } from '../../store/useBuildingStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { LanguageSwitcher } from '../../components/layout/LanguageSwitcher';
 import { ThemeToggle } from '../../components/layout/ThemeToggle';
@@ -24,7 +24,7 @@ interface ManagerAuthScreenProps {
 type AuthMode = 'login' | 'signup';
 
 export const ManagerAuthScreen: React.FC<ManagerAuthScreenProps> = () => {
-  const { registerManager, loginManager } = useBuildingStore();
+  const { registerManager, loginManager } = useAuthStore();
   const { t, isRtl } = useLanguageStore();
 
   const [authMode, setAuthMode] = useState<AuthMode>('login');

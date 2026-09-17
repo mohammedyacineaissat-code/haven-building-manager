@@ -31,6 +31,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // Determine language from localStorage or default to fr
+      let lang = 'fr';
+      try {
+        const storedLang = window.localStorage.getItem('haven_language');
+        if (storedLang) {
+          lang = JSON.parse(storedLang);
+        }
+      } catch (e) {
+        // ignore JSON parse error
+      }
+
+      const isEn = lang === 'en';
+
       return (
         <div style={{
           minHeight: '100vh',
@@ -54,11 +67,12 @@ export class ErrorBoundary extends Component<Props, State> {
           }}>
             <div style={{ fontSize: '48px', marginBottom: '12px' }}>⚠️</div>
             <h1 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>
-              Haven — Erreur
+              {isEn ? 'Haven — Error' : 'Haven — Erreur'}
             </h1>
             <p style={{ fontSize: '14px', color: '#64748B', marginBottom: '20px', lineHeight: 1.5 }}>
-              L'application a rencontré une erreur inattendue. 
-              Veuillez redémarrer l'application.
+              {isEn 
+                ? 'The application encountered an unexpected error. Please restart the application.' 
+                : "L'application a rencontré une erreur inattendue. Veuillez redémarrer l'application."}
             </p>
             <details style={{
               textAlign: 'left',
@@ -71,7 +85,9 @@ export class ErrorBoundary extends Component<Props, State> {
               maxHeight: '200px',
               overflow: 'auto',
             }}>
-              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Détails techniques</summary>
+              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+                {isEn ? 'Technical Details' : 'Détails techniques'}
+              </summary>
               <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', marginTop: '8px' }}>
                 {this.state.error?.toString()}
                 {'\n\n'}
@@ -95,7 +111,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 width: '100%',
               }}
             >
-              Redémarrer l'application
+              {isEn ? 'Restart Application' : "Redémarrer l'application"}
             </button>
           </div>
         </div>

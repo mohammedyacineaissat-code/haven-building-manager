@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useBuildingStore } from '../../store/useBuildingStore';
+import { useFinanceStore } from '../../store/useFinanceStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { GrosTravauxProject, GrosTravauxStatus } from '../../types/building';
 import { AddGrosTravauxModal } from './AddGrosTravauxModal';
@@ -37,7 +37,7 @@ export const GrosTravauxTab: React.FC<GrosTravauxTabProps> = ({
     toggleGrosTravauxAptPaid, 
     deleteGrosTravauxProject, 
     publishGrosTravauxNotice 
-  } = useBuildingStore();
+  } = useFinanceStore();
 
   const { t, isRtl } = useLanguageStore();
 
@@ -70,7 +70,7 @@ export const GrosTravauxTab: React.FC<GrosTravauxTabProps> = ({
   };
 
   const handleBroadcast = async (projectId: string) => {
-    await publishGrosTravauxNotice(buildingId, projectId);
+    await publishGrosTravauxNotice(buildingId, projectId, totalUnits);
     setBroadcastSuccessId(projectId);
     setTimeout(() => setBroadcastSuccessId(null), 4000);
   };

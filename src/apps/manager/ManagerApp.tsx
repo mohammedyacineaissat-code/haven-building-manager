@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
-import { useBuildingStore, DEFAULT_BUILDING } from '../../store/useBuildingStore';
+import { useBuildingStore } from '../../store/useBuildingStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useIncidentStore } from '../../store/useIncidentStore';
+import { useNoticeStore } from '../../store/useNoticeStore';
+import { useTicketStore } from '../../store/useTicketStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { IncidentCard } from '../../components/outages/IncidentCard';
 import { BroadcastModal } from '../../components/manager/BroadcastModal';
 import { StatusUpdateModal } from '../../components/manager/StatusUpdateModal';
 import { AddBuildingModal } from '../../components/manager/AddBuildingModal';
+import { EditBuildingModal } from '../../components/manager/EditBuildingModal';
 import { AddExpenseModal } from '../../components/manager/AddExpenseModal';
 import { AddAnnouncementModal } from '../../components/manager/AddAnnouncementModal';
 import { ResidentsListView } from '../../components/directory/ResidentsListView';
@@ -15,6 +20,7 @@ import { ResidentTicketsView } from '../../components/reports/ResidentTicketsVie
 import { ThemeToggle } from '../../components/layout/ThemeToggle';
 import { LanguageSwitcher } from '../../components/layout/LanguageSwitcher';
 import { Incident, IncidentCategory } from '../../types/building';
+import { DEFAULT_BUILDING } from '../../store/defaults';
 import { 
   Radio, 
   MessageSquare, 
@@ -39,7 +45,11 @@ import {
   Building2,
   Phone,
   LogOut,
-  RotateCcw
+  RotateCcw,
+  AlertCircle,
+  Clock,
+  Building,
+  Edit2
 } from 'lucide-react';
 import { ManagerAuthScreen } from './ManagerAuthScreen';
 
@@ -54,6 +64,7 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [broadcastCategory, setBroadcastCategory] = useState<IncidentCategory>('water');
   const [isAddBuildingModalOpen, setIsAddBuildingModalOpen] = useState(false);
+  const [editingBuildingId, setEditingBuildingId] = useState<string | null>(null);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [selectedIncidentForUpdate, setSelectedIncidentForUpdate] = useState<Incident | null>(null);
@@ -63,17 +74,17 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
   const [calcTitle, setCalcTitle] = useState('');
   const [calcAmount, setCalcAmount] = useState<string>('');
 
+  const { managerProfile, logoutManager } = useAuthStore();
   const { 
-    managerProfile,
-    logoutManager,
     buildings, 
     activeBuildingId, 
     setActiveBuilding, 
     removeBuilding,
-    activeIncidents, 
-    residentReports,
-    notices
+    addBuilding,
   } = useBuildingStore();
+  const { activeIncidents } = useIncidentStore();
+  const { residentReports } = useTicketStore();
+  const { notices } = useNoticeStore();
 
   const { t } = useLanguageStore();
 
@@ -102,7 +113,7 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
             </button>
             <button
               onClick={() => {
-                useBuildingStore.getState().addBuilding({
+                addBuilding({
                   name: 'Majestic 14 (Oran)',
                   address: 'Oran',
                   totalUnits: 42,
@@ -286,18 +297,31 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
                             </div>
                             {activeBuildingId === b.id && <CheckCircle className="w-4 h-4 shrink-0" />}
                           </button>
-                          <button
-                            onClick={(e) => {
+                          <div className="flex items-center gap-1 px-4 py-2.5 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingBuildingId(b.id);
+                                setIsBuildingSelectorOpen(false);
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-indigo-500 transition-colors rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/30"
+                              title="Modifier la résidence"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={(e) => {
                               e.stopPropagation();
                               if (window.confirm(t.manager.confirm_remove.replace('{name}', b.name))) {
                                 removeBuilding(b.id);
                               }
                             }}
-                            className="px-4 py-2.5 text-slate-400 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
-                            title="Remove residence"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                              className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors rounded-lg hover:bg-rose-50 dark:hover:bg-rose-900/30"
+                              title="Supprimer la résidence"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -681,6 +705,11 @@ export const ManagerApp: React.FC<ManagerAppProps> = ({ standalone = false }) =>
       <AddBuildingModal
         isOpen={isAddBuildingModalOpen}
         onClose={() => setIsAddBuildingModalOpen(false)}
+      />
+      <EditBuildingModal
+        isOpen={!!editingBuildingId}
+        onClose={() => setEditingBuildingId(null)}
+        building={buildings.find(b => b.id === editingBuildingId) || null}
       />
 
       <AddAnnouncementModal

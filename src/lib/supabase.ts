@@ -1,19 +1,31 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const envUrl = import.meta.env.VITE_SUPABASE_URL;
-const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-const isValidUrl = envUrl && envUrl.startsWith('http');
-const isValidKey = envKey && envKey.length > 20 && !envKey.includes('your_');
+const isValidUrl = supabaseUrl.startsWith('http');
+const isValidKey = supabaseAnonKey.length > 20 && !supabaseAnonKey.includes('your_');
 
-const supabaseUrl = isValidUrl ? envUrl : 'https://odbykhhepvlkdtgpokzy.supabase.co';
-const supabaseAnonKey = isValidKey ? envKey : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kYnlraGhlcHZsa2R0Z3Bva3p5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MTA1NzgsImV4cCI6MjEwNDE4NjU3OH0.wcUA2adtUB2ZpNdpfU-jYHjp8Mgw-KEt_emkI-Qmccg';
+/**
+ * Whether Supabase is properly configured with valid environment variables.
+ * When false, the app operates in offline/localStorage-only mode.
+ */
+export const isSupabaseConfigured = isValidUrl && isValidKey;
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+if (!isSupabaseConfigured) {
+  console.warn(
+    '[Haven] Supabase not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file. Running in offline mode.'
+  );
+}
 
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey,
+/**
+ * Supabase client instance.
+ * When credentials are not configured, a dummy client is created with empty strings — 
+ * all queries will fail gracefully and the app falls back to localStorage.
+ */
+export const supabase: SupabaseClient = createClient(
+  isValidUrl ? supabaseUrl : 'https://placeholder.supabase.co',
+  isValidKey ? supabaseAnonKey : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
   {
     auth: {
       persistSession: true,

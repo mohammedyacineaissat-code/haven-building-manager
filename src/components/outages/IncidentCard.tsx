@@ -4,7 +4,8 @@ import {
   IncidentStatus, 
   IncidentCategory 
 } from '../../types/building';
-import { useBuildingStore } from '../../store/useBuildingStore';
+import { useIncidentStore } from '../../store/useIncidentStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { 
   Droplet, 
@@ -28,7 +29,8 @@ interface IncidentCardProps {
 }
 
 export const IncidentCard: React.FC<IncidentCardProps> = ({ incident, onOpenStatusUpdater }) => {
-  const { currentRole, confirmRestoration, userApartment, addTimelineNote } = useBuildingStore();
+  const { currentRole, userApartment } = useAuthStore();
+  const { confirmRestoration, addTimelineNote } = useIncidentStore();
   const { t } = useLanguageStore();
   const [quickNote, setQuickNote] = useState('');
 

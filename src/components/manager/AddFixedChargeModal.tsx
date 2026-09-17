@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useBuildingStore } from '../../store/useBuildingStore';
+import { useFinanceStore } from '../../store/useFinanceStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { FixedCharge, FixedChargeCategory } from '../../types/building';
 import { 
@@ -30,7 +30,7 @@ export const AddFixedChargeModal: React.FC<AddFixedChargeModalProps> = ({
   buildingId,
   initialCharge
 }) => {
-  const { addFixedCharge, updateFixedCharge, deleteFixedCharge } = useBuildingStore();
+  const { addFixedCharge, updateFixedCharge, deleteFixedCharge } = useFinanceStore();
   const { t, isRtl } = useLanguageStore();
 
   const [title, setTitle] = useState('');

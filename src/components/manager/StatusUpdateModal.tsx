@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Check, ArrowRight } from 'lucide-react';
 import { Incident, IncidentStatus } from '../../types/building';
-import { useBuildingStore } from '../../store/useBuildingStore';
+import { useIncidentStore } from '../../store/useIncidentStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 
 interface StatusUpdateModalProps {
@@ -11,7 +11,7 @@ interface StatusUpdateModalProps {
 }
 
 export const StatusUpdateModal: React.FC<StatusUpdateModalProps> = ({ incident, isOpen, onClose }) => {
-  const { updateIncidentStatus } = useBuildingStore();
+  const { updateIncidentStatus } = useIncidentStore();
   const { t } = useLanguageStore();
   const [selectedStatus, setSelectedStatus] = useState<IncidentStatus>(incident?.status || 'in_progress');
   const [note, setNote] = useState('');

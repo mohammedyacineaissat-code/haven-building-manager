@@ -1,5 +1,6 @@
 import React from 'react';
 import { useBuildingStore } from '../../store/useBuildingStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { 
   Phone, 
@@ -15,7 +16,8 @@ import {
 } from 'lucide-react';
 
 export const EmergencyDirectory: React.FC = () => {
-  const { currentRole, staffContacts, contractorContacts } = useBuildingStore();
+  const { currentRole } = useAuthStore();
+  const { staffContacts, contractorContacts } = useBuildingStore();
   const { t } = useLanguageStore();
 
   const getContractorIcon = (iconName: string) => {

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useBuildingStore } from '../../store/useBuildingStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { useTicketStore } from '../../store/useTicketStore';
 import { 
   Camera, 
   Send, 
@@ -14,15 +16,9 @@ import { IncidentCategory } from '../../types/building';
 import { useLanguageStore } from '../../store/useLanguageStore';
 
 export const ResidentTicketsView: React.FC = () => {
-  const { 
-    currentRole, 
-    residentReports, 
-    submitResidentReport, 
-    updateTicketStatus,
-    userApartment,
-    activeBuildingId,
-    residentHomeBuildingId
-  } = useBuildingStore();
+  const { currentRole, userApartment, residentProfile } = useAuthStore();
+  const { residentReports, submitResidentReport, updateTicketStatus } = useTicketStore();
+  const { activeBuildingId } = useBuildingStore();
   const { t } = useLanguageStore();
   
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -59,7 +55,7 @@ export const ResidentTicketsView: React.FC = () => {
     setShowSubmitModal(false);
   };
 
-  const currentBuildingId = currentRole === 'resident' ? residentHomeBuildingId : activeBuildingId;
+  const currentBuildingId = currentRole === 'resident' ? residentProfile?.buildingId : activeBuildingId;
   const buildingTickets = residentReports.filter(r => !r.buildingId || !currentBuildingId || r.buildingId === currentBuildingId);
 
   const filteredTickets = buildingTickets.filter(t => {

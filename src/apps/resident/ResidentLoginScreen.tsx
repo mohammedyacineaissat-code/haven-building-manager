@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useBuildingStore } from '../../store/useBuildingStore';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { LanguageSwitcher } from '../../components/layout/LanguageSwitcher';
 import { 
@@ -27,12 +28,12 @@ type AuthMode = 'signup' | 'login';
 export const ResidentLoginScreen: React.FC<ResidentLoginScreenProps> = ({ 
   isStandalone = false 
 }) => {
+  const { buildings } = useBuildingStore();
   const { 
-    buildings, 
     registerResident, 
     loginResidentWithCredentials, 
     registeredAccounts 
-  } = useBuildingStore();
+  } = useAuthStore();
   
   const { t, isRtl } = useLanguageStore();
 

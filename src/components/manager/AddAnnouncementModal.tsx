@@ -12,6 +12,7 @@ import {
   Send
 } from 'lucide-react';
 import { useBuildingStore } from '../../store/useBuildingStore';
+import { useNoticeStore } from '../../store/useNoticeStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 
 interface AddAnnouncementModalProps {
@@ -25,7 +26,8 @@ export const AddAnnouncementModal: React.FC<AddAnnouncementModalProps> = ({
   isOpen, 
   onClose 
 }) => {
-  const { addNotice, buildings, activeBuildingId } = useBuildingStore();
+  const { buildings, activeBuildingId } = useBuildingStore();
+  const { addNotice } = useNoticeStore();
   const { t } = useLanguageStore();
 
   const currentBuilding = buildings.find(b => b.id === activeBuildingId) || buildings[0];

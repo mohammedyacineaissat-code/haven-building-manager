@@ -1,10 +1,10 @@
 import React from 'react';
-import { useBuildingStore } from '../../store/useBuildingStore';
+import { useNoticeStore } from '../../store/useNoticeStore';
 import { useLanguageStore } from '../../store/useLanguageStore';
 import { Pin, Calendar, User, Info, Coins } from 'lucide-react';
 
 export const NoticeBoard: React.FC = () => {
-  const { notices } = useBuildingStore();
+  const { notices } = useNoticeStore();
   const { t } = useLanguageStore();
 
   return (
